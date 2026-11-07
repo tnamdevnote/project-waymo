@@ -33,8 +33,12 @@ export type CabinLive = {
   braking: boolean;
 };
 
+/** Where the ride is: waiting for the rider to press Start ride, or under way. */
+export type RidePhase = "boarding" | "riding";
+
 export type CabinScreenState = {
-  /** The rider wants the car moving (false after pullOver()). */
+  phase: RidePhase;
+  /** The rider wants the car moving (false after pullOver()). Only moves it while riding. */
   driving: boolean;
   motion: Motion;
   /** Cruise speed, m/s. */
@@ -42,6 +46,7 @@ export type CabinScreenState = {
 };
 
 export type CabinScreenActions = {
+  startRide: () => void;
   pullOver: () => void;
   resume: () => void;
   setSpeed: (speed: number) => void;
@@ -135,6 +140,8 @@ export type CabinScreenRootProps = ComponentProps<"div"> & {
   onDrivingChange?: (driving: boolean) => void;
   /** Uncontrolled starting value for `driving`. */
   defaultDriving?: boolean;
+  /** Starting phase. "boarding" holds the car until startRide(). */
+  defaultPhase?: RidePhase;
   /** Cruise speed, m/s. */
   speed?: number;
 };
@@ -143,6 +150,7 @@ export function CabinScreenRoot({
   driving: drivingProp,
   onDrivingChange,
   defaultDriving = true,
+  defaultPhase = "riding",
   speed: speedProp = 9,
   className,
   children,
@@ -150,6 +158,7 @@ export function CabinScreenRoot({
 }: CabinScreenRootProps) {
   const [drivingState, setDrivingState] = useState(defaultDriving);
   const driving = drivingProp ?? drivingState;
+  const [phase, setPhase] = useState<RidePhase>(defaultPhase);
 
   // `speed` seeds the cruise speed; setSpeed() changes it, and a new prop value wins again.
   const [speed, setSpeedState] = useState(speedProp);
@@ -163,8 +172,8 @@ export function CabinScreenRoot({
   const [engine] = useState(() => createEngine(setMotion));
 
   useLayoutEffect(() => {
-    engine.configure({ cruise: speed, driving });
-  }, [engine, speed, driving]);
+    engine.configure({ cruise: speed, driving: phase === "riding" && driving });
+  }, [engine, speed, driving, phase]);
 
   const onDrivingChangeRef = useRef(onDrivingChange);
   useLayoutEffect(() => {
@@ -181,6 +190,7 @@ export function CabinScreenRoot({
 
   const actions = useMemo<CabinScreenActions>(
     () => ({
+      startRide: () => setPhase("riding"),
       pullOver: () => setDriving(false),
       resume: () => setDriving(true),
       setSpeed: (n) => setSpeedState(Math.max(0, n)),
@@ -189,8 +199,8 @@ export function CabinScreenRoot({
   );
 
   const value = useMemo<CabinScreenContextValue>(
-    () => ({ state: { driving, motion, speed }, actions, meta: engine.meta }),
-    [driving, motion, speed, actions, engine],
+    () => ({ state: { phase, driving, motion, speed }, actions, meta: engine.meta }),
+    [phase, driving, motion, speed, actions, engine],
   );
 
   return (

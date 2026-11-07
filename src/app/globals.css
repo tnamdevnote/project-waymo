@@ -1,3 +1,19 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 @import "./tokens.css";
+
+/* A grid of faint dots that fades out toward the middle, so it never sits behind a label. */
+@utility dot-field {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-image: radial-gradient(circle, oklch(100% 0 0 / 0.35) 1.25px, transparent 1.75px);
+    background-size: 14px 14px;
+    background-position: center;
+    mask-image: radial-gradient(ellipse 70% 90% at center, transparent 35%, black 100%);
+    pointer-events: none;
+  }
+}
