@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
+
+const poppins = Poppins({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+});
 
 export const metadata: Metadata = {
   title: "Waymo Cabin Prototype",
@@ -8,8 +15,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`light ${poppins.variable}`} data-theme="light">
+      <body className="bg-background font-sans text-foreground antialiased">{children}</body>
     </html>
   );
 }

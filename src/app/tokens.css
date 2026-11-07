@@ -1,0 +1,147 @@
+/*
+ * Waymo cabin theme for HeroUI.
+ * Same shape as a HeroUI theme export (@see https://heroui.com/docs/react/getting-started/theming),
+ * with Waymo brand values, plus a few variables HeroUI doesn't define (marked "Waymo").
+ *
+ * Dark is the cabin default. Neutrals are cool navy (hue 283) to agree with the brand blue.
+ * Contrast ratios in comments are WCAG 2 against the surface named.
+ */
+
+/* == Waymo brand primitives: the original Figma swatches, exact == */
+:root {
+  --waymo-blue: oklch(59.59% 0.22 257.93); /* #0077FE */
+  --waymo-green: oklch(82.23% 0.1824 161.27); /* #00E89E */
+  --waymo-navy: oklch(26.96% 0.0479 282.71); /* #23233D */
+  --waymo-slate: oklch(68.62% 0.0231 268.34); /* #949AA9 */
+}
+
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"] {
+  color-scheme: light;
+
+  /* Theme Colors (Light Mode) */
+  --accent: var(--waymo-blue); /* white on it: 4.1:1, text ≥24px only */
+  --accent-foreground: oklch(100% 0 0);
+  --background: oklch(97.5% 0.004 283);
+  --border: oklch(90% 0.01 283);
+  --danger: oklch(57% 0.2 25); /* white on it: 4.9:1 */
+  --danger-foreground: oklch(100% 0 0);
+  --default: oklch(94% 0.008 283);
+  --default-foreground: var(--foreground);
+  --field-background: oklch(100% 0 0);
+  --field-border: transparent;
+  --field-foreground: var(--foreground);
+  --field-placeholder: var(--muted);
+  --focus: var(--accent);
+  --foreground: var(--waymo-navy); /* 14.1:1 on background */
+  --muted: oklch(52% 0.025 270); /* 5.5:1 on white */
+  --overlay: oklch(100% 0 0);
+  --overlay-foreground: var(--foreground);
+  --scrollbar: oklch(85% 0.012 283);
+  --segment: oklch(100% 0 0);
+  --segment-foreground: var(--foreground);
+  --separator: oklch(92% 0.008 283);
+  --success: var(--path); /* "it worked" and "this is the route" share one green */
+  --success-foreground: var(--path-foreground);
+  --surface: oklch(100% 0 0);
+  --surface-foreground: var(--foreground);
+  --surface-secondary: oklch(95.5% 0.006 283);
+  --surface-secondary-foreground: var(--foreground);
+  --surface-tertiary: oklch(93% 0.008 283);
+  --surface-tertiary-foreground: var(--foreground);
+  --warning: oklch(79% 0.155 72); /* pull-over, slowing; navy on it: 7.7:1 */
+  --warning-foreground: var(--waymo-navy);
+
+  /* Waymo: the car's planned route on the map. Never a primary action. */
+  --path: oklch(62% 0.14 161.3); /* 3.4:1 on white — strokes and fills */
+  --path-foreground: var(--waymo-navy); /* 4.5:1 on path */
+
+  /* Border Radius — rounded, like the Waymo mark; touch targets on a cabin screen */
+  --radius: 0.75rem;
+  --field-radius: calc(var(--radius) * 1.5);
+
+  /* Font Family — loaded with next/font in layout.tsx */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Theme Colors (Dark Mode) — surfaces get lighter as they stack: background → surface → overlay */
+  --accent: oklch(
+    60% 0.17 257.9
+  ); /* brand blue, chroma cut ~20% so it doesn't vibrate; white on it: 4.0:1 */
+  --accent-foreground: oklch(100% 0 0);
+  --background: oklch(16% 0.03 283);
+  --border: oklch(33% 0.035 283); /* solid in dark mode; alpha borders glow */
+  --danger: oklch(68% 0.17 25); /* 5.7:1 on surface */
+  --danger-foreground: oklch(16% 0.03 283);
+  --default: oklch(29% 0.035 283);
+  --default-foreground: var(--foreground);
+  --field-background: oklch(23.5% 0.036 283);
+  --field-border: transparent;
+  --field-foreground: var(--foreground);
+  --field-placeholder: var(--muted);
+  --focus: var(--accent);
+  --foreground: oklch(96.5% 0.008 283); /* 17.6:1 on background */
+  --muted: oklch(74% 0.022 270); /* 7.7:1 on surface */
+  --overlay: oklch(26% 0.038 283);
+  --overlay-foreground: var(--foreground);
+  --scrollbar: oklch(42% 0.035 283);
+  --segment: oklch(36% 0.04 283);
+  --segment-foreground: var(--foreground);
+  --separator: oklch(29% 0.035 283);
+  --success: var(--path);
+  --success-foreground: var(--path-foreground);
+  --surface: oklch(21% 0.035 283);
+  --surface-foreground: var(--foreground);
+  --surface-secondary: oklch(23.5% 0.036 283);
+  --surface-secondary-foreground: var(--foreground);
+  --surface-tertiary: oklch(25% 0.037 283);
+  --surface-tertiary-foreground: var(--foreground);
+  --warning: oklch(82% 0.14 75);
+  --warning-foreground: oklch(16% 0.03 283);
+
+  /* Waymo */
+  --path: oklch(80% 0.15 161.3); /* 10:1 on surface */
+  --path-foreground: oklch(16% 0.03 283);
+}
+
+/* == Waymo: Tailwind utilities HeroUI doesn't provide == */
+@theme inline {
+  --color-path: var(--path);
+  --color-path-foreground: var(--path-foreground);
+
+  /*
+   * Cabin type scale: Medium for headings, Regular for text, nothing under 24px.
+   * Tight tracking on display sizes only.
+   */
+  --text-display: 6rem; /* 96 */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 500;
+
+  --text-title: 3.75rem; /* 60 */
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 500;
+
+  --text-heading: 2.25rem; /* 36 */
+  --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.01em;
+  --text-heading--font-weight: 500;
+
+  --text-body: 1.875rem; /* 30 */
+  --text-body--line-height: 1.4;
+  --text-body--letter-spacing: 0em;
+  --text-body--font-weight: 400;
+
+  --text-caption: 1.5rem; /* 24 */
+  --text-caption--line-height: 1.35;
+  --text-caption--letter-spacing: 0em;
+  --text-caption--font-weight: 400;
+}
