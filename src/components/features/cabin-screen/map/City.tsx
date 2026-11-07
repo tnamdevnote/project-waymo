@@ -1,10 +1,9 @@
-"use client";
+'use client';
 
 // CabinMap.City: ground, sidewalk blocks, buildings and road markings. Static, built once.
-import { useLayoutEffect, useRef } from "react";
-import * as THREE from "three";
-import { palette } from "./palette";
-import { type Box, buildCity, buildMarkings } from "./world";
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import * as THREE from 'three';
+import { type Box, buildCity, buildMarkings, cssVar } from './world';
 
 const city = buildCity();
 const marks = buildMarkings();
@@ -33,17 +32,22 @@ function Boxes({ items, color }: { items: Box[]; color: string }) {
 }
 
 export function City() {
+  const road = useMemo(() => cssVar('--waymo-slate'), []);
+  const sidewalk = useMemo(() => cssVar('--surface-secondary'), []);
+  const building = useMemo(() => cssVar('--surface-tertiary'), []);
+  const marking = useMemo(() => cssVar('--surface'), []);
+
   return (
     <>
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[1200, 1200]} />
-        <meshLambertMaterial color={palette.road} />
+        <meshLambertMaterial color={road} />
       </mesh>
-      <Boxes items={city.slabs} color={palette.sidewalk} />
-      <Boxes items={city.buildings} color={palette.building} />
-      <Boxes items={marks.lines} color={palette.marking} />
-      <Boxes items={marks.dashes} color={palette.marking} />
-      <Boxes items={marks.walks} color={palette.marking} />
+      <Boxes items={city.slabs} color={sidewalk} />
+      <Boxes items={city.buildings} color={building} />
+      <Boxes items={marks.lines} color={marking} />
+      <Boxes items={marks.dashes} color={marking} />
+      <Boxes items={marks.walks} color={marking} />
     </>
   );
 }

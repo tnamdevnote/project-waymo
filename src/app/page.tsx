@@ -1,4 +1,4 @@
-import { CabinMap, CabinScreen } from '@/components/features/cabin-screen';
+import { CabinMap, CabinScreen } from "@/components/features/cabin-screen";
 
 export default function Home() {
   return (

@@ -1,13 +1,12 @@
-"use client";
+'use client';
 /* oxlint-disable react/immutability -- R3F idiom: shader uniforms are mutated per frame in useFrame, outside React. */
 
 // CabinMap.Route: a flat strip on the road. Green ahead of the car, blue behind, fading at both ends.
-import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
-import * as THREE from "three";
-import { useCabinScreen } from "../CabinScreenRoot";
-import { palette } from "./palette";
-import { loop } from "./world";
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useMemo } from 'react';
+import * as THREE from 'three';
+import { useCabinScreen } from '../CabinScreenRoot';
+import { cssVar, loop } from './world';
 
 const vertexShader = /* glsl */ `
 attribute float aDist;
@@ -70,9 +69,9 @@ function buildRibbon(width: number) {
     }
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  g.setAttribute("aDist", new THREE.BufferAttribute(dist, 1));
-  g.setAttribute("aSide", new THREE.BufferAttribute(side, 1));
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aDist', new THREE.BufferAttribute(dist, 1));
+  g.setAttribute('aSide', new THREE.BufferAttribute(side, 1));
   g.setIndex(idx);
   g.computeBoundingSphere();
   return g;
@@ -99,8 +98,8 @@ export function Route({
       uLen: { value: loop.len },
       uAhead: { value: 0 }, // written every frame from the props
       uBehind: { value: 0 },
-      uAheadColor: { value: new THREE.Color(palette.ahead) },
-      uBehindColor: { value: new THREE.Color(palette.behind) },
+      uAheadColor: { value: new THREE.Color(cssVar('--waymo-green')) },
+      uBehindColor: { value: new THREE.Color(cssVar('--waymo-blue')) },
     }),
     [],
   );
