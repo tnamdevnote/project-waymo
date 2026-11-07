@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`dark ${poppins.variable}`} data-theme="dark">
+    <html lang="en" className={`light ${poppins.variable}`} data-theme="light">
       <body className="bg-background font-sans text-foreground antialiased">{children}</body>
     </html>
   );
