@@ -22,6 +22,10 @@ export type {
   CabinScreenState,
   RidePhase,
 } from "./CabinScreenRoot";
+export { BottomSheet } from "./bottom-sheet/BottomSheet";
+export type { BottomSheetContentProps, BottomSheetProps } from "./bottom-sheet/BottomSheet";
+export { TroubleshootSheet } from "./troubleshoot/TroubleshootSheet";
+export type { TroubleshootSheetProps } from "./troubleshoot/TroubleshootSheet";
 export { MenuBar } from "./menu-bar/MenuBar";
 export type { MenuBarItemProps, MenuBarProps, MenuBarToggleProps } from "./menu-bar/MenuBar";
 export type { RideMenuProps } from "./menu-bar/RideMenu";

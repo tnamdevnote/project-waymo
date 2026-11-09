@@ -2,7 +2,9 @@
 
 // CabinScreen.RideMenu: the floating menu bar shown during the ride. Pull over is wired to the
 // cabin state; the rest report presses so the screen can open its own panels.
+import { BottomSheet } from "../bottom-sheet/BottomSheet";
 import { useCabinScreen } from "../CabinScreenRoot";
+import { TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 import { MenuBar, type MenuBarProps } from "./MenuBar";
 
 function MusicIcon() {
@@ -76,7 +78,7 @@ export function RideMenu({
       inert={hidden}
       data-hidden={hidden || undefined}
       className={[
-        "absolute inset-x-0 bottom-12 flex justify-center px-12",
+        "absolute inset-x-0 bottom-12 flex justify-end px-12",
         "transition-opacity duration-300 ease-out motion-reduce:transition-none",
         "data-[hidden]:pointer-events-none data-[hidden]:opacity-0",
       ].join(" ")}
@@ -107,10 +109,14 @@ export function RideMenu({
           {state.driving ? "Pull over" : "Resume ride"}
         </MenuBar.Item>
         <MenuBar.Separator />
-        <MenuBar.Item onPress={onTroubleshoot}>
-          <QuestionIcon />
-          Troubleshoot
-        </MenuBar.Item>
+        {/* The item is the sheet's trigger: it opens the sheet and gets focus back on close. */}
+        <BottomSheet>
+          <MenuBar.Item onPress={onTroubleshoot}>
+            <QuestionIcon />
+            Troubleshoot
+          </MenuBar.Item>
+          <TroubleshootSheet />
+        </BottomSheet>
       </MenuBar>
     </div>
   );
