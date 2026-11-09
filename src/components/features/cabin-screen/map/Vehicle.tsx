@@ -1,12 +1,12 @@
-'use client';
+"use client";
 /* oxlint-disable react/immutability -- R3F idiom: the car's transform and brake color are mutated per frame in useFrame, outside React. */
 
 // CabinMap.Vehicle: the rider's car. Brake light comes on when slowing or stopped.
-import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import { useCabinScreen } from '../CabinScreenRoot';
-import { cssVar } from './world';
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import * as THREE from "three";
+import { useCabinScreen } from "../CabinScreenRoot";
+import { cssVar } from "./world";
 
 const WHEELS = [
   [0.96, 1.45],
@@ -17,12 +17,12 @@ const WHEELS = [
 
 export function Vehicle() {
   const { meta } = useCabinScreen();
-  const body = useMemo(() => cssVar('--surface'), []);
-  const glass = useMemo(() => cssVar('--waymo-blue'), []);
-  const sensor = useMemo(() => cssVar('--waymo-slate'), []);
-  const tire = useMemo(() => cssVar('--waymo-slate'), []);
-  const brakeOn = useMemo(() => new THREE.Color(cssVar('--danger')), []);
-  const brakeOff = useMemo(() => new THREE.Color(cssVar('--border')), []);
+  const body = useMemo(() => cssVar("--surface"), []);
+  const glass = useMemo(() => cssVar("--waymo-blue"), []);
+  const sensor = useMemo(() => cssVar("--waymo-slate"), []);
+  const tire = useMemo(() => cssVar("--waymo-slate"), []);
+  const brakeOn = useMemo(() => new THREE.Color(cssVar("--danger")), []);
+  const brakeOff = useMemo(() => new THREE.Color(cssVar("--border")), []);
   const car = useRef<THREE.Group>(null);
   const brake = useRef<THREE.MeshBasicMaterial>(null);
 
@@ -55,11 +55,7 @@ export function Vehicle() {
         <meshLambertMaterial color={sensor} />
       </mesh>
       {WHEELS.map(([x, z]) => (
-        <mesh
-          key={`${x}${z}`}
-          position={[x, 0.36, z]}
-          rotation={[0, 0, Math.PI / 2]}
-        >
+        <mesh key={`${x}${z}`} position={[x, 0.36, z]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.36, 0.36, 0.28, 16]} />
           <meshLambertMaterial color={tire} />
         </mesh>

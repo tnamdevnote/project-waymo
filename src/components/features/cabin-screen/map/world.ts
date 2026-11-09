@@ -1,6 +1,6 @@
 // The cabin map's world: a small grid city, the car's loop and traffic. The drive sim is in ../sim.ts.
 // Units are meters. Forward on the first leg is -z (north).
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export const ROAD_HALF = 7;
 export const WALK = 3;
@@ -58,15 +58,11 @@ export function buildLoop(): Loop {
 
   const cum = [0];
   for (let i = 1; i < pts.length; i++) {
-    cum.push(
-      cum[i - 1] +
-        Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]),
-    );
+    cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   }
   const len = cum[cum.length - 1];
   const corners: [number, number][] = [];
-  for (let k = 0; k < marks.length; k += 2)
-    corners.push([cum[marks[k]], cum[marks[k + 1]]]);
+  for (let k = 0; k < marks.length; k += 2) corners.push([cum[marks[k]], cum[marks[k + 1]]]);
 
   const at = (d: number, out: THREE.Vector3) => {
     d = wrap(d, len);
@@ -154,10 +150,7 @@ export function buildMarkings() {
     const b = [-EXTENT, ...cross, EXTENT];
     const out: [number, number][] = [];
     for (let k = 0; k < b.length - 1; k++) {
-      out.push([
-        b[k] + (k === 0 ? 0 : clear),
-        b[k + 1] - (k + 1 === b.length - 1 ? 0 : clear),
-      ]);
+      out.push([b[k] + (k === 0 ? 0 : clear), b[k + 1] - (k + 1 === b.length - 1 ? 0 : clear)]);
     }
     return out;
   };
@@ -218,7 +211,7 @@ export function buildMarkings() {
 /* ---------- Moving things ---------- */
 
 export type Lane = {
-  axis: 'x' | 'z';
+  axis: "x" | "z";
   at: number;
   dir: 1 | -1;
   speed: number;
@@ -236,11 +229,9 @@ export const TRAFFIC: Lane[] = ROADS_X.flatMap((xc, i) =>
       [5.25, -1],
     ] as const
   )
-    .filter(
-      ([off]) => !(xc === 0 && off === 5.25) && !(xc === 100 && off === -5.25),
-    )
+    .filter(([off]) => !(xc === 0 && off === 5.25) && !(xc === 100 && off === -5.25))
     .map(([off, dir], k) => ({
-      axis: 'z' as const,
+      axis: "z" as const,
       at: xc + off,
       dir,
       speed: 7 + ((i * 4 + k) % 5) * 1.3,
@@ -249,19 +240,11 @@ export const TRAFFIC: Lane[] = ROADS_X.flatMap((xc, i) =>
     })),
 );
 
-export function laneSpot(
-  lane: Lane,
-  k: number,
-  time: number,
-  out: THREE.Vector3,
-) {
+export function laneSpot(lane: Lane, k: number, time: number, out: THREE.Vector3) {
   const span = EXTENT * 2;
   const s =
-    wrap(
-      lane.phase + (k * span) / lane.count + lane.dir * lane.speed * time,
-      span,
-    ) - EXTENT;
-  return lane.axis === 'z' ? out.set(lane.at, 0, s) : out.set(s, 0, lane.at);
+    wrap(lane.phase + (k * span) / lane.count + lane.dir * lane.speed * time, span) - EXTENT;
+  return lane.axis === "z" ? out.set(lane.at, 0, s) : out.set(s, 0, lane.at);
 }
 
 /** The one loop the car drives. Shared by the sim, the route and the camera. */
@@ -269,19 +252,19 @@ export const loop = buildLoop();
 
 // WebGL materials take sRGB. Theme tokens are oklch() and var(), so sample the used color.
 export function cssVar(name: `--${string}`): string {
-  if (typeof document === 'undefined') return '#ffffff';
-  const probe = document.createElement('span');
+  if (typeof document === "undefined") return "#ffffff";
+  const probe = document.createElement("span");
   probe.style.color = `var(${name})`;
   document.documentElement.appendChild(probe);
   const computed = getComputedStyle(probe).color;
   probe.remove();
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
   canvas.width = 1;
   canvas.height = 1;
-  const sample = canvas.getContext('2d');
-  if (!sample) return '#ffffff';
+  const sample = canvas.getContext("2d");
+  if (!sample) return "#ffffff";
   sample.fillStyle = computed;
   sample.fillRect(0, 0, 1, 1);
   const [r, g, b] = sample.getImageData(0, 0, 1, 1).data;
-  return `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+  return `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
 }

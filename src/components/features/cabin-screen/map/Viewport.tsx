@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 // CabinMap.Viewport: the WebGL canvas filling CabinScreen.Root. Steps the drive sim once per
 // frame, before the map parts run, so they all read the same updated position.
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useMemo, type ReactNode } from 'react';
-import { useCabinEngine } from '../CabinScreenRoot';
-import { cssVar } from './world';
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useMemo, type ReactNode } from "react";
+import { useCabinEngine } from "../CabinScreenRoot";
+import { cssVar } from "./world";
 
 const LABEL =
-  'Map: your car driving to the destination. The route ahead is green, the part already driven is blue.';
+  "Map: your car driving to the destination. The route ahead is green, the part already driven is blue.";
 
 function Step() {
   const engine = useCabinEngine();
@@ -21,9 +21,9 @@ const FOG_NEAR = 70;
 const FOG_FAR = 230;
 
 function Atmosphere() {
-  const background = useMemo(() => cssVar('--background'), []);
-  const sky = useMemo(() => cssVar('--surface'), []);
-  const ground = useMemo(() => cssVar('--border'), []);
+  const background = useMemo(() => cssVar("--background"), []);
+  const sky = useMemo(() => cssVar("--surface"), []);
+  const ground = useMemo(() => cssVar("--border"), []);
 
   return (
     <>
@@ -45,7 +45,7 @@ export function Viewport({ children }: { children?: ReactNode }) {
       flat
       dpr={[1, 2]}
       camera={{ fov: 50, near: 0.5, far: 1200, position: [0, 10, 20] }}
-      style={{ position: 'absolute', inset: 0 }}
+      style={{ position: "absolute", inset: 0 }}
     >
       <Atmosphere />
       <Step />
