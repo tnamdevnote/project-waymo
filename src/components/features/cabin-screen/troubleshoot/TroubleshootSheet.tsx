@@ -3,7 +3,7 @@
 // The Troubleshoot sheet's content. Placeholder actions for now; place it inside a <BottomSheet>
 // next to the button that opens it.
 import { Button, type ButtonProps } from "@heroui/react";
-import { BottomSheet, type BottomSheetContentProps } from "../bottom-sheet/BottomSheet";
+import { BottomSheet, type BottomSheetContentProps } from "@/components/ui/BottomSheet";
 
 // A large tile, sized for a moving car rather than a toolbar.
 function ActionTile({ className, ...props }: ButtonProps) {

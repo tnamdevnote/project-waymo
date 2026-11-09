@@ -2,10 +2,10 @@
 
 // CabinScreen.RideMenu: the floating menu bar shown during the ride. Pull over is wired to the
 // cabin state; the rest report presses so the screen can open its own panels.
-import { BottomSheet } from "../bottom-sheet/BottomSheet";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useCabinScreen } from "../CabinScreenRoot";
 import { TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
-import { MenuBar, type MenuBarProps } from "./MenuBar";
+import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
 
 function MusicIcon() {
   return (

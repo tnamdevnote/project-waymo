@@ -84,9 +84,9 @@ Touch targets are at least 80px (`h-20` / `size-20`) on the cabin screen. HeroUI
 
 HeroUI derives `--*-soft` and `--*-hover` from our tokens. Let components use them; never reference them in `className`.
 
-Icons: no icon set exists. Inline SVG, `stroke="currentColor"`, `strokeWidth={2}`, `aria-hidden`, `size-8` next to text (copy `HeadsetIcon` in `SupportButton.tsx`).
+Icons: no icon set exists. Inline SVG, `stroke="currentColor"`, `strokeWidth={2}`, `aria-hidden`, `size-8` next to text (copy `HeadsetIcon` in `src/components/ui/SupportButton.tsx`).
 
-Styling a HeroUI component with `className` is allowed only with the tokens and scales above. Wrap a styled HeroUI component in a named component (like `SupportButton`) when it appears more than once.
+Styling a HeroUI component with `className` is allowed only with the tokens and scales above. Wrap a styled HeroUI component in a named component (like `SupportButton`) when it appears more than once. Those wrappers live in `src/components/ui/`.
 
 ### Button
 
@@ -108,7 +108,7 @@ Which variant?
 On the cabin screen every button is `size="lg"`; `sm` and `md` are too small to hit in a moving car.
 
 ```tsx
-// Correct (SupportButton.tsx)
+// Correct (src/components/ui/SupportButton.tsx)
 <Button variant="tertiary" size="lg">Support</Button>
 
 // Incorrect — no variant means primary, so this competes with Start ride

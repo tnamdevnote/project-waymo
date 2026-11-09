@@ -5,8 +5,8 @@
 import { Link } from "@heroui/react";
 import { type ComponentProps, useSyncExternalStore } from "react";
 import { useCabinScreen } from "../CabinScreenRoot";
-import { SupportButton } from "../SupportButton";
-import { StartRideButton } from "./StartRideButton";
+import { StartRideButton } from "@/components/ui/StartRideButton";
+import { SupportButton } from "@/components/ui/SupportButton";
 
 export type StartRideProps = ComponentProps<"section"> & {
   /** Rider's first name, for the greeting. */

@@ -1,6 +1,6 @@
 "use client";
 
-// Rider support. Shown on every cabin screen, so it lives next to the Root, not in a screen folder.
+// Rider support. Shown on every cabin screen.
 import { Button, type ButtonProps } from "@heroui/react";
 
 function HeadsetIcon() {
