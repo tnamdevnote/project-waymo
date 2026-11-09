@@ -9,11 +9,7 @@ export function StartRideButton({ className, children = "Start ride", ...props }
     <Button
       size="lg"
       fullWidth
-      className={[
-        "dot-field relative isolate h-44 rounded-3xl text-title",
-        "shadow-[0_1px_2px_oklch(0%_0_0/0.08),0_8px_24px_-8px_var(--accent)]",
-        className,
-      ]
+      className={["dot-field relative isolate h-44 rounded-3xl text-title shadow-hero", className]
         .filter(Boolean)
         .join(" ")}
       {...props}

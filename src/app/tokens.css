@@ -116,6 +116,12 @@
   --color-path: var(--path);
   --color-path-foreground: var(--path-foreground);
 
+  /* Elevation: two levels only. A tight contact shadow plus a soft drop. */
+  --shadow-float:
+    0 1px 2px oklch(0% 0 0 / 0.06), 0 6px 20px -6px oklch(0% 0 0 / 0.18); /* controls over the map */
+  --shadow-hero:
+    0 1px 2px oklch(0% 0 0 / 0.08), 0 8px 24px -8px var(--accent); /* the one primary action; glows in accent */
+
   /*
    * Cabin type scale: Medium for headings, Regular for text, nothing under 24px.
    * Tight tracking on display sizes only.

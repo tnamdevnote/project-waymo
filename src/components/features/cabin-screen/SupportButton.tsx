@@ -29,8 +29,7 @@ export function SupportButton({ className, ...props }: ButtonProps) {
       variant="tertiary"
       size="lg"
       className={[
-        "h-20 gap-3 rounded-full bg-surface px-8 text-caption text-foreground",
-        "shadow-[0_1px_2px_oklch(0%_0_0/0.06),0_6px_20px_-6px_oklch(0%_0_0/0.18)]",
+        "h-20 gap-3 rounded-full bg-surface px-8 text-caption text-foreground shadow-float",
         className,
       ]
         .filter(Boolean)
