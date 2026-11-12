@@ -11,6 +11,7 @@ export default function Home() {
           <CabinMap.Vehicle />
           <CabinMap.Camera />
         </CabinMap.Viewport>
+        <CabinScreen.VehicleThought />
         <CabinScreen.RideMenu />
         <CabinScreen.StartRide rider="Taek Been" destination="2105 Comal St" />
       </CabinScreen.Root>

@@ -5,6 +5,7 @@
 import {
   type ComponentProps,
   createContext,
+  type RefObject,
   use,
   useCallback,
   useLayoutEffect,
@@ -57,10 +58,25 @@ export type CabinScreenMeta = {
   getSnapshot: () => CabinLive;
 };
 
+/**
+ * An invisible HTML element that a map part keeps over its 3D object, so overlays (a tooltip, a
+ * thinking bubble) can anchor to it. `point` is its latest position in px from the Root's corner.
+ */
+export type CabinAnchor = {
+  ref: RefObject<HTMLDivElement | null>;
+  point: { x: number; y: number };
+};
+
+export type CabinScreenAnchors = {
+  /** The front of the rider's car. Moved by CabinMap.Vehicle every frame. */
+  vehicle: CabinAnchor;
+};
+
 export type CabinScreenContextValue = {
   state: CabinScreenState;
   actions: CabinScreenActions;
   meta: CabinScreenMeta;
+  anchors: CabinScreenAnchors;
 };
 
 /* ---------- Engine: the mutable sim plus a tiny external store ---------- */
@@ -170,6 +186,12 @@ export function CabinScreenRoot({
 
   const [motion, setMotion] = useState<Motion>("stopped");
   const [engine] = useState(() => createEngine(setMotion));
+  const vehicleAnchorRef = useRef<HTMLDivElement>(null);
+  const [vehiclePoint] = useState(() => ({ x: 0, y: 0 }));
+  const anchors = useMemo<CabinScreenAnchors>(
+    () => ({ vehicle: { ref: vehicleAnchorRef, point: vehiclePoint } }),
+    [vehiclePoint],
+  );
 
   useLayoutEffect(() => {
     engine.configure({ cruise: speed, driving: phase === "riding" && driving });
@@ -199,8 +221,8 @@ export function CabinScreenRoot({
   );
 
   const value = useMemo<CabinScreenContextValue>(
-    () => ({ state: { phase, driving, motion, speed }, actions, meta: engine.meta }),
-    [phase, driving, motion, speed, actions, engine],
+    () => ({ state: { phase, driving, motion, speed }, actions, meta: engine.meta, anchors }),
+    [phase, driving, motion, speed, actions, engine, anchors],
   );
 
   return (
@@ -210,6 +232,11 @@ export function CabinScreenRoot({
           className={["relative overflow-hidden", className].filter(Boolean).join(" ")}
           {...props}
         >
+          <div
+            ref={vehicleAnchorRef}
+            aria-hidden
+            className="pointer-events-none absolute top-0 left-0 size-0"
+          />
           {children}
         </div>
       </EngineContext>

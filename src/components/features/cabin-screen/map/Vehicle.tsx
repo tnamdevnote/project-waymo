@@ -15,8 +15,12 @@ const WHEELS = [
   [-0.96, -1.45],
 ] as const;
 
+/** Where overlays point: the top of the hood's front edge, meters from the car's center. */
+const NOSE_AHEAD = 2.3;
+const NOSE_Y = 1.2;
+
 export function Vehicle() {
-  const { meta } = useCabinScreen();
+  const { meta, anchors } = useCabinScreen();
   const body = useMemo(() => cssVar("--surface"), []);
   const glass = useMemo(() => cssVar("--waymo-blue"), []);
   const sensor = useMemo(() => cssVar("--waymo-slate"), []);
@@ -25,9 +29,25 @@ export function Vehicle() {
   const brakeOff = useMemo(() => new THREE.Color(cssVar("--border")), []);
   const car = useRef<THREE.Group>(null);
   const brake = useRef<THREE.MeshBasicMaterial>(null);
+  const nose = useMemo(() => new THREE.Vector3(), []);
 
-  useFrame(() => {
+  useFrame(({ camera, size }) => {
     const live = meta.getSnapshot();
+    // Keep the HTML anchor over the nose so overlays can point at the car. The camera looks
+    // forward, so the nose is the edge facing up the screen, where a thinking bubble's puff points.
+    nose
+      .set(
+        live.x + Math.sin(live.heading) * NOSE_AHEAD,
+        NOSE_Y,
+        live.z + Math.cos(live.heading) * NOSE_AHEAD,
+      )
+      .project(camera);
+    const anchor = anchors.vehicle;
+    anchor.point.x = ((nose.x + 1) / 2) * size.width;
+    anchor.point.y = ((1 - nose.y) / 2) * size.height;
+    if (anchor.ref.current) {
+      anchor.ref.current.style.translate = `${anchor.point.x}px ${anchor.point.y}px`;
+    }
     if (car.current) {
       car.current.position.set(live.x, 0, live.z);
       car.current.rotation.y = live.heading;
