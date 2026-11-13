@@ -13,14 +13,12 @@ import {
   type ReactNode,
 } from "react";
 import {
-  BottomSheet,
   CabinMap,
   CabinScreen,
-  MenuBar,
-  SupportButton,
   TroubleshootSheet,
   useCabinScreen,
 } from "@/components/features/cabin-screen";
+import { BottomSheet, MenuBar, SupportButton } from "@/components/ui";
 
 const VARIANTS = [
   { key: "current", name: "Current" },

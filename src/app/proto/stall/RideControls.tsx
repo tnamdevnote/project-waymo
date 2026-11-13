@@ -3,7 +3,8 @@
 // PROTOTYPE (stall): the normal ride controls, with the rider's own way in. Troubleshoot →
 // "Waymo is stalled" skips the car's wait and jumps straight to status. Shared by every variant;
 // once the stall UI is up, the variant owns the screen and this bar steps aside.
-import { BottomSheet, MenuBar, useCabinScreen } from "@/components/features/cabin-screen";
+import { useCabinScreen } from "@/components/features/cabin-screen";
+import { BottomSheet, MenuBar } from "@/components/ui";
 import { Button } from "@heroui/react";
 import { useState } from "react";
 import { Hold911Button, SupportControl } from "./shared";

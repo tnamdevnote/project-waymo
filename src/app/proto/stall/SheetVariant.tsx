@@ -2,7 +2,7 @@
 
 // PROTOTYPE (stall) — Variant 1, Step sheet: the existing bottom sheet, one step at a time.
 // Axis: interruptive. Each stage replaces the last; the map is dimmed behind it.
-import { BottomSheet } from "@/components/features/cabin-screen";
+import { BottomSheet } from "@/components/ui";
 import { Button, Chip } from "@heroui/react";
 import { useState } from "react";
 import { Hold911Button, ShieldIcon, StepList, SupportControl } from "./shared";
