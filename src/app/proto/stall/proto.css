@@ -1,0 +1,181 @@
+/* ---------- Picker: verbatim from emil-prototype PICKER.md (harness chrome, not design) ---------- */
+.proto-picker {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.proto-picker-highlight {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  will-change: transform;
+}
+.proto-picker[data-ready] .proto-picker-highlight {
+  transition:
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-picker[data-ready] .proto-picker-highlight {
+    transition: none;
+  }
+}
+.proto-picker-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.proto-picker-item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.proto-picker-item:active {
+  transform: scale(0.97);
+}
+.proto-picker-item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.proto-picker-item[data-active] {
+  color: #fff;
+}
+.proto-picker-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.proto-picker-replay {
+  padding: 0 10px;
+  font-size: 14px;
+}
+.proto-picker[data-position="top"] {
+  bottom: auto;
+  top: 24px;
+}
+
+/* Harness chrome: the scenario switch reuses the picker look, sitting under the variant picker. */
+.proto-scenarios {
+  bottom: auto;
+  top: 72px;
+}
+
+/* ---------- Hold-to-call fill (shared) ---------- */
+.proto-hold-fill {
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 150ms ease-out;
+}
+.proto-hold[data-holding] .proto-hold-fill {
+  transform: scaleX(1);
+  transition: transform 1500ms linear;
+}
+
+/* ---------- Variant 2 — Status board: panel slides in, new rows fade in ---------- */
+.proto-board {
+  animation: proto-board-in 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes proto-board-in {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+}
+.proto-row {
+  animation: proto-fade-up 250ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ---------- Variant 3 — Ambient: card enters once, content cross-fades per state ---------- */
+.proto-ambient {
+  animation: proto-fade-up 250ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.proto-ambient-content {
+  animation: proto-fade 200ms ease-out;
+}
+
+@keyframes proto-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes proto-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proto-board,
+  .proto-row,
+  .proto-ambient,
+  .proto-ambient-content {
+    animation: none;
+  }
+  .proto-hold[data-holding] .proto-hold-fill {
+    transition: none;
+  }
+}
+
+/* ---------- Board 3 — Track: docks up from the bottom, the line fills step by step ---------- */
+.proto-track {
+  animation: proto-track-in 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes proto-track-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+.proto-track-fill {
+  transform-origin: left;
+  transition: transform 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ---------- Board 2 — Countdown: segments fill as steps complete ---------- */
+.proto-seg {
+  transition: background-color 250ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proto-track,
+  .proto-track-fill,
+  .proto-seg {
+    animation: none;
+    transition: none;
+  }
+}

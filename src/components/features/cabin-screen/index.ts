@@ -33,8 +33,9 @@ export type { Motion } from "./sim";
 export { ThinkingBubble } from "./thinking-bubble/ThinkingBubble";
 export type {
   ThinkingBubbleContentProps,
+  ThinkingBubbleGlyphProps,
   ThinkingBubbleProps,
-  TrafficLightProps,
-  TrafficSignal,
 } from "./thinking-bubble/ThinkingBubble";
 export type { VehicleThoughtProps } from "./thinking-bubble/VehicleThought";
+export { ThoughtIcon } from "./thinking-bubble/ThoughtIcon";
+export type { Thought, ThoughtIconProps } from "./thinking-bubble/ThoughtIcon";

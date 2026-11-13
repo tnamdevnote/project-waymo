@@ -42,3 +42,5 @@ minimumReleaseAgeExclude:
   - "@oxlint/binding-win32-x64-msvc@1.92.0"
   - oxfmt@0.77.0
   - oxlint@1.92.0
+patchedDependencies:
+  img-fx@0.5.1: patches/img-fx@0.5.1.patch

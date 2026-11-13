@@ -1,15 +1,23 @@
 "use client";
 
-// CabinScreen.VehicleThought: a thought bubble over the rider's car saying why it's stopping.
-// Red while it brakes for and waits at the stop line; green for a moment as it pulls away.
+// CabinScreen.VehicleThought: a thought bubble over the rider's car showing what it's doing at a
+// red light: a warning while it brakes and waits, then a navigation arrow as it pulls away.
 // Not shown when the rider pulled over: they asked for that stop, so there's nothing to explain.
 import { useEffect, useRef, useState } from "react";
 import { useCabinScreen } from "../CabinScreenRoot";
 import { ThinkingBubble, type ThinkingBubbleContentProps } from "./ThinkingBubble";
+import { ThoughtIcon, type Thought } from "./ThoughtIcon";
 
 const GREEN_MS = 1500;
 
 type Light = "red" | "green";
+
+/** What the car is thinking about: the red light it's stopping for, then moving on. */
+const THOUGHT: Record<Light, Thought> = {
+  red: "warning",
+  green: "navigate",
+};
+const LIGHTS = Object.keys(THOUGHT) as Light[];
 
 const ANNOUNCE: Record<Light, string> = {
   red: "Stopping for a red light",
@@ -24,7 +32,7 @@ export function VehicleThought(props: VehicleThoughtProps) {
   const auto = phase === "riding" && driving;
 
   const [light, setLight] = useState<Light | null>(null);
-  // Kept after close so the glyph doesn't change while the bubble fades out.
+  // Kept after close so the icon doesn't change while the bubble fades out.
   const [shown, setShown] = useState<Light>("red");
   const [prevMotion, setPrevMotion] = useState(motion);
   if (motion !== prevMotion) {
@@ -65,7 +73,11 @@ export function VehicleThought(props: VehicleThoughtProps) {
     <>
       <ThinkingBubble.Root isOpen={open}>
         <ThinkingBubble.Content ref={bubble} triggerRef={anchors.vehicle.ref} {...props}>
-          <ThinkingBubble.TrafficLight signal={shown} />
+          {LIGHTS.map((l) => (
+            <ThinkingBubble.Glyph key={l} shown={l === shown}>
+              <ThoughtIcon name={THOUGHT[l]} />
+            </ThinkingBubble.Glyph>
+          ))}
         </ThinkingBubble.Content>
       </ThinkingBubble.Root>
       <output className="sr-only">{light ? ANNOUNCE[light] : ""}</output>

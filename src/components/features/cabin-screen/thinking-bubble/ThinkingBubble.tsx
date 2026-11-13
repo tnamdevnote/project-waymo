@@ -3,8 +3,10 @@
 // ThinkingBubble: a HeroUI Tooltip restyled as a thought cloud, for what the car is reacting to
 // (a red light, a pedestrian). One cloud with a puff on the side facing the anchor, no arrow.
 // Anchor it with a Tooltip.Trigger child, or with `triggerRef` for something drawn on the map.
+// Motion (grow out of the car, glyph cross-fade) is in globals.css under `.thinking-bubble`; see
+// docs/decisions/thinking-bubble-motion.md.
 import { Tooltip, type TooltipContentProps, type TooltipRootProps } from "@heroui/react";
-import type { ComponentProps } from "react";
+import type { ReactNode } from "react";
 
 const cx = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(" ");
 
@@ -31,7 +33,8 @@ const PUFF = "pointer-events-none absolute top-38 left-1.5 size-20 rounded-full 
 
 /**
  * The cloud. Defaults put it above and to the right of the anchor, with the puff just past it.
- * Its children are the "thought", centered in the big circle: one glyph, read at a glance.
+ * Its children are the "thought", centered in the big circle: one glyph, read at a glance. To
+ * switch between glyphs while open, wrap each in a `ThinkingBubble.Glyph`.
  *
  * React Aria won't let `crossOffset` move a tooltip past the edge of its anchor, so the puff is
  * moved clear of the anchor with `ml-7` instead. Override it with `className`.
@@ -48,7 +51,7 @@ function Content({
       placement={placement}
       offset={offset}
       className={cx(
-        "relative ml-7 size-58 max-w-none rounded-none bg-transparent p-0 text-overlay-foreground shadow-none select-none",
+        "thinking-bubble relative ml-7 size-58 max-w-none rounded-none bg-transparent p-0 text-overlay-foreground shadow-none select-none",
         className,
       )}
       {...props}
@@ -57,55 +60,34 @@ function Content({
       <span aria-hidden className={cx(PUFF, "shadow-float")} />
       <span aria-hidden className={CLOUD} />
       <span aria-hidden className={PUFF} />
-      <div className="absolute top-0 right-0 flex size-56 items-center justify-center">
-        {children}
-      </div>
+      <div className="absolute top-0 right-0 grid size-56 place-items-center">{children}</div>
     </Tooltip.Content>
   );
 }
 
-/* ---------- Glyphs ---------- */
+/* ---------- Glyph ---------- */
 
-export type TrafficSignal = "red" | "yellow" | "green";
-
-const LAMPS = [
-  { signal: "red", fill: "bg-danger" },
-  { signal: "yellow", fill: "bg-warning" },
-  { signal: "green", fill: "bg-success" },
-] as const;
-
-const SIGNAL_LABEL: Record<TrafficSignal, string> = {
-  red: "Red light",
-  yellow: "Yellow light",
-  green: "Green light",
+export type ThinkingBubbleGlyphProps = {
+  /** The glyph on show. Exactly one Glyph in a Content should be shown at a time. */
+  shown: boolean;
+  children: ReactNode;
 };
 
-export type TrafficLightProps = ComponentProps<"div"> & {
-  /** The lit lamp. The other two stay dim. */
-  signal: TrafficSignal;
-};
-
-function TrafficLight({ signal, className, ...props }: TrafficLightProps) {
+/**
+ * One glyph the cloud can show. Render every glyph it might switch between and mark the current
+ * one `shown`: they share one cell, so a switch cross-fades instead of cutting. All stay mounted,
+ * so the swap animates in both directions.
+ */
+function Glyph({ shown, children }: ThinkingBubbleGlyphProps) {
   return (
-    <div
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- drawn with tokens, not an image file
-      role="img"
-      aria-label={SIGNAL_LABEL[signal]}
-      className={cx("flex flex-col items-center gap-2 rounded-2xl bg-foreground p-3", className)}
-      {...props}
+    <span
+      className="thinking-bubble__glyph"
+      data-shown={shown || undefined}
+      aria-hidden={!shown || undefined}
     >
-      {LAMPS.map((lamp) => (
-        <span
-          key={lamp.signal}
-          className={cx(
-            "size-8 rounded-full transition-opacity duration-300 ease-out motion-reduce:transition-none",
-            lamp.fill,
-            lamp.signal === signal ? "opacity-100" : "opacity-20",
-          )}
-        />
-      ))}
-    </div>
+      {children}
+    </span>
   );
 }
 
-export const ThinkingBubble = { Root, Trigger: Tooltip.Trigger, Content, TrafficLight };
+export const ThinkingBubble = { Root, Trigger: Tooltip.Trigger, Content, Glyph };

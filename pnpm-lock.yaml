@@ -162,6 +162,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  img-fx@0.5.1: a0dfcc1e13d76e23d8418a275152c75109f8e4a8d3b0319d274606917334052f
+
 importers:
 
   .:
@@ -175,6 +178,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.8.2
         version: 9.8.2(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.187.0)
+      img-fx:
+        specifier: 0.5.1
+        version: 0.5.1(patch_hash=a0dfcc1e13d76e23d8418a275152c75109f8e4a8d3b0319d274606917334052f)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.187.0)
       next:
         specifier: 16.4.5
         version: 16.4.5(@types/node@24.19.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -184,6 +190,9 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      thinking-orbs:
+        specifier: 0.3.2
+        version: 0.3.2(react@19.3.0)
       three:
         specifier: ^0.187.0
         version: 0.187.0
@@ -1100,6 +1109,13 @@ packages:
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
+  img-fx@0.5.1:
+    resolution: {integrity: sha512-CXIFGoGgK5F80d8I+VXZ96dmfkWqb4EGpecAIVXVXhuUVqCe1571Xhf5oGZ4qmTce0UoTfNMKLQDOgSAbIbH0w==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+      three: '>=0.149.0'
+
   input-otp@1.5.0:
     resolution: {integrity: sha512-3AcfdW1sNG0FmSA5hHMBXG7jNW5CdcdKs8ln8JOmn6S2SRkoXoJx+2UwC+ZvjflfnOdHJx0SfQ9/YjlxVYLtGQ==}
     peerDependencies:
@@ -1372,6 +1388,11 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
+
+  thinking-orbs@0.3.2:
+    resolution: {integrity: sha512-QZFeBaPEzqhjiZoXy961EvDgaXk2WgXacF3Rbz+Sj5IfzDzBvTC86vdREUHniBffYibJFKSwbfllxLUdI/Xv6g==}
+    peerDependencies:
+      react: '>=18.0.0'
 
   three@0.187.0:
     resolution: {integrity: sha512-Qiu7R+Cmh8CstZsY1uJOSWnVlfo7ZtNLV7mF8Jltk3LB3AtDu9cRZlcnRKkAk8Y4z6KKw35z7Y7Urd7jWY8etA==}
@@ -2072,6 +2093,12 @@ snapshots:
 
   ieee754@1.2.1: {}
 
+  img-fx@0.5.1(patch_hash=a0dfcc1e13d76e23d8418a275152c75109f8e4a8d3b0319d274606917334052f)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.187.0):
+    dependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+      three: 0.187.0
+
   input-otp@1.5.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       react: 19.3.0
@@ -2354,6 +2381,10 @@ snapshots:
   tailwindcss@4.3.4: {}
 
   tapable@2.3.3: {}
+
+  thinking-orbs@0.3.2(react@19.3.0):
+    dependencies:
+      react: 19.3.0
 
   three@0.187.0: {}
 

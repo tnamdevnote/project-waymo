@@ -1,0 +1,183 @@
+/* PROTOTYPE (menu-hover): throwaway. Delete this folder when a variant is picked. */
+
+/* ---------- Picker: verbatim from emil-prototype PICKER.md (harness chrome, not design) ---------- */
+.proto-picker {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.82);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.proto-picker-highlight {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  will-change: transform;
+}
+.proto-picker[data-ready] .proto-picker-highlight {
+  transition:
+    transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-picker[data-ready] .proto-picker-highlight {
+    transition: none;
+  }
+}
+.proto-picker-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.proto-picker-item:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.proto-picker-item:active {
+  transform: scale(0.97);
+}
+.proto-picker-item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+.proto-picker-item[data-active] {
+  color: #fff;
+}
+.proto-picker-divider {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.proto-picker-replay {
+  padding: 0 10px;
+  font-size: 14px;
+}
+.proto-picker[data-position="top"] {
+  bottom: auto;
+  top: 24px;
+}
+
+/* ---------- Variant 2 — Glide: one shared highlight follows the pointer ---------- */
+[data-variant="glide"] .proto-item {
+  --button-bg-hover: transparent;
+  --button-bg-pressed: transparent;
+  --toggle-button-bg-hover: transparent;
+  --toggle-button-bg-pressed: transparent;
+}
+.glide-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--default);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 200ms var(--ease-smooth, ease-out),
+    width 200ms var(--ease-smooth, ease-out),
+    opacity 150ms ease-out;
+}
+.glide-highlight[data-visible] {
+  opacity: 1;
+}
+/* First entry: appear in place instead of sliding in from the last position. */
+.glide-highlight[data-instant] {
+  transition: opacity 150ms ease-out;
+}
+/* Pressing scales the highlight with the item, so they stay one shape. */
+.glide-highlight[data-pressed] {
+  scale: 0.96;
+}
+.glide-highlight {
+  transition-property: transform, width, opacity, scale;
+}
+
+/* ---------- Variant 3 — Spotlight: hovered item holds, siblings recede ---------- */
+[data-variant="spotlight"] .proto-item {
+  --button-bg-hover: transparent;
+  --toggle-button-bg-hover: transparent;
+  transition:
+    color 150ms ease-out,
+    transform 250ms var(--ease-smooth, ease-out),
+    background-color 150ms ease-out;
+}
+[data-variant="spotlight"]
+  .proto-bar:has(.proto-item[data-hovered="true"])
+  .proto-item:not([data-hovered="true"], [data-selected="true"]) {
+  color: var(--muted);
+}
+[data-variant="spotlight"] .proto-bar .separator {
+  transition: opacity 150ms ease-out;
+}
+[data-variant="spotlight"] .proto-bar:has(.proto-item[data-hovered="true"]) .separator {
+  opacity: 0.4;
+}
+
+/* ---------- Variant 4 — Lift: item fills, its content reacts ---------- */
+[data-variant="lift"] .lift-content {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  transition: translate 150ms ease-out;
+}
+[data-variant="lift"] .lift-icon {
+  transition:
+    rotate 200ms var(--ease-smooth, ease-out),
+    translate 200ms var(--ease-smooth, ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-variant="lift"] [data-hovered="true"] .lift-content {
+    translate: 0 -2px;
+  }
+  [data-variant="lift"] [data-hovered="true"] .lift-icon[data-tilt="left"] {
+    rotate: -10deg;
+  }
+  [data-variant="lift"] [data-hovered="true"] .lift-icon[data-tilt="right"] {
+    rotate: 12deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glide-highlight,
+  [data-variant] .proto-item,
+  [data-variant] .separator,
+  [data-variant="lift"] .lift-content,
+  [data-variant="lift"] .lift-icon {
+    transition: none;
+  }
+  [data-variant="lift"] .lift-content,
+  [data-variant="lift"] .lift-icon {
+    translate: none !important;
+    rotate: none !important;
+  }
+}

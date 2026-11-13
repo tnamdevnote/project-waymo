@@ -17,3 +17,61 @@
     pointer-events: none;
   }
 }
+
+/* ThinkingBubble motion: grows out of the car, glyphs cross-fade. Values and the rejected
+   options are in docs/decisions/thinking-bubble-motion.md. These outrank HeroUI's tooltip motion. */
+@keyframes thinking-bubble-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@keyframes thinking-bubble-out {
+  to {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+.thinking-bubble {
+  /* The centre of the puff, the part nearest the car. */
+  transform-origin: 20% 83%;
+
+  &[data-entering="true"][data-placement] {
+    animation: thinking-bubble-in 320ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+
+  &[data-exiting="true"][data-placement] {
+    animation: thinking-bubble-out 140ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+}
+
+.thinking-bubble__glyph {
+  grid-area: 1 / 1;
+  opacity: 0;
+  scale: 0.3;
+  filter: blur(3px);
+  transition-property: opacity, scale, filter;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0, 1);
+
+  &[data-shown] {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-bubble[data-entering="true"][data-placement],
+  .thinking-bubble[data-exiting="true"][data-placement] {
+    animation: none;
+  }
+
+  .thinking-bubble__glyph {
+    scale: 1;
+    filter: none;
+    transition: none;
+  }
+}
