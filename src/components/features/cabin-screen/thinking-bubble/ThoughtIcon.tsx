@@ -47,13 +47,41 @@ const THOUGHTS = {
 
 export type Thought = keyof typeof THOUGHTS;
 
+/**
+ * The longest side of each glyph's artwork (its opaque bounding box) in px, on the 256px canvas.
+ * The files are all 256px but the artwork in them isn't the same size (the headset fills 204px,
+ * the VR glasses 151px), so each glyph is scaled to bring its artwork to ARTWORK px and they all
+ * read as one size in the bubble.
+ */
+const EXTENT: Record<Thought, number> = {
+  alert: 173,
+  back: 170,
+  chat: 159,
+  check: 164,
+  done: 177,
+  headset: 204,
+  help: 173,
+  idea: 172,
+  map: 186,
+  navigate: 174,
+  pin: 173,
+  remote: 151,
+  search: 176,
+  settings: 174,
+  support: 170,
+  warning: 173,
+};
+/** The artwork size every glyph is brought to: the common size across the set. */
+const ARTWORK = 173;
+
 export type ThoughtIconProps = {
   name: Thought;
   /** Sizes the icon. Replaces the default rather than adding to it. @default "size-32" */
   className?: string;
 };
 
-/** Decorative: the bubble's status is announced separately, like the orb. */
+/** Decorative: the bubble's status is announced separately, like the orb. Every glyph's artwork
+ *  renders at the same size; `className` sizes them all alike. */
 export function ThoughtIcon({ name, className = "size-32" }: ThoughtIconProps) {
   return (
     <Image
@@ -65,6 +93,7 @@ export function ThoughtIcon({ name, className = "size-32" }: ThoughtIconProps) {
       loading="eager"
       draggable={false}
       className={className}
+      style={{ scale: ARTWORK / EXTENT[name] }}
     />
   );
 }

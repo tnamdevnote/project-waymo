@@ -1,7 +1,8 @@
 "use client";
 
-// CabinScreen.VehicleThought: a thought bubble over the rider's car showing what it's doing at a
-// red light: a warning while it brakes and waits, then a navigation arrow as it pulls away.
+// CabinScreen.VehicleThought: a thought bubble over the rider's car showing what it's doing when it
+// stops on its own (the lane closure at the cones): a muted question mark while it brakes and
+// waits, unsure how to get past, then a navigation arrow as it pulls away.
 // Not shown when the rider pulled over: they asked for that stop, so there's nothing to explain.
 // While the car diagnoses a stall the rider reported, it shows a question mark while scanning,
 // an exclamation mark once it has found the obstruction, a VR headset while a remote agent
@@ -19,16 +20,20 @@ const GREEN_MS = 1500;
 
 type Light = "red" | "green";
 
-/** What the car is thinking about: the red light it's stopping for, then moving on. */
+/**
+ * What the car is thinking about: why it's stopping, then moving on. "red" is the car's own stop
+ * (only the cones, in this prototype): the muted question mark, the same one it shows while it
+ * scans after the rider reports it stuck, so that hand-off doesn't change the glyph.
+ */
 const THOUGHT: Record<Light, Thought> = {
-  red: "warning",
+  red: "help",
   green: "navigate",
 };
 const LIGHTS = Object.keys(THOUGHT) as Light[];
 
 const ANNOUNCE: Record<Light, string> = {
-  red: "Stopping for a red light",
-  green: "Light is green. Continuing.",
+  red: "Stopping. Something is blocking the lane.",
+  green: "Continuing.",
 };
 
 export type VehicleThoughtProps = Omit<ThinkingBubbleContentProps, "children" | "triggerRef">;
@@ -131,10 +136,8 @@ export function VehicleThought(props: VehicleThoughtProps) {
           <ThinkingBubble.Glyph shown={diagnosis === "resolving"}>
             <ThoughtIcon name="search" />
           </ThinkingBubble.Glyph>
-          {/* Smaller than the rest, as in Figma: the tick square is 78px in the cloud where the
-              others are 100–120px. */}
           <ThinkingBubble.Glyph shown={diagnosis === "confirmed"}>
-            <ThoughtIcon name="done" className="size-21" />
+            <ThoughtIcon name="done" />
           </ThinkingBubble.Glyph>
         </ThinkingBubble.Content>
       </ThinkingBubble.Root>
