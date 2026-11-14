@@ -34,15 +34,26 @@ function MenuBarRoot({ className, ...props }: MenuBarProps) {
   );
 }
 
-export type MenuBarItemProps = Omit<ButtonProps, "className"> & { className?: string };
+// The item's fill and label color. `danger` ends something the rider started (End call): filled
+// so it stands apart from the ghost items, danger text so it reads as hanging up.
+const itemTone = {
+  default: "text-foreground",
+  danger: "bg-surface-secondary text-danger",
+} as const;
 
-/** An action: opens something or does something once (Troubleshoot, Pull over). */
-function MenuBarItem({ className, ...props }: MenuBarItemProps) {
+export type MenuBarItemProps = Omit<ButtonProps, "className"> & {
+  className?: string;
+  /** @default "default" */
+  tone?: keyof typeof itemTone;
+};
+
+/** An action: opens something or does something once (Troubleshoot, Pull over, End call). */
+function MenuBarItem({ className, tone = "default", ...props }: MenuBarItemProps) {
   return (
     <Button
       variant="ghost"
       size="lg"
-      className={cx(itemClass, "text-foreground", className)}
+      className={cx(itemClass, itemTone[tone], className)}
       {...props}
     />
   );

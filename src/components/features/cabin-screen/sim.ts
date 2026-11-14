@@ -5,7 +5,9 @@ import { type Loop, wrap } from "./map/world";
 
 const TURN_SPEED = 4.5; // m/s through corners
 const DECEL = 2.5; // m/s² used to plan braking
-const STOP_HOLD = 2.5; // seconds held at the stop line
+// Seconds held at the stop before driving on. The stop is a lane closure the car can't get
+// past, so it holds for good: the rider is meant to find it stuck and report it.
+const STOP_HOLD = Infinity;
 
 export type Motion = "driving" | "stopping" | "stopped";
 
@@ -35,6 +37,12 @@ export const newSim = (): Sim => ({
   stopping: false,
 });
 
+/** Route distance (not wrapped) of the next stop the car will hold at, at or ahead of it. */
+export function nextStop(sim: Sim, loop: Loop) {
+  const next = loop.stopAt + loop.len * Math.ceil((sim.dist - loop.stopAt - 0.6) / loop.len);
+  return next <= sim.served ? next + loop.len : next;
+}
+
 export function stepSim(sim: Sim, dt: number, cruise: number, loop: Loop) {
   sim.time += dt;
   const d = wrap(sim.dist, loop.len);
@@ -46,8 +54,7 @@ export function stepSim(sim: Sim, dt: number, cruise: number, loop: Loop) {
       target = Math.min(target, Math.sqrt(TURN_SPEED ** 2 + 2 * DECEL * wrap(a - d, loop.len)));
     }
   }
-  let next = loop.stopAt + loop.len * Math.ceil((sim.dist - loop.stopAt - 0.6) / loop.len);
-  if (next <= sim.served) next += loop.len;
+  const next = nextStop(sim, loop);
   const toStop = next - sim.dist;
   const stopCap = Math.sqrt(2 * DECEL * Math.max(0, toStop - 0.05));
   const forStopLine = stopCap < target && stopCap < sim.v + 0.5;

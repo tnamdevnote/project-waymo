@@ -2,32 +2,43 @@
 // the thinking bubble as what the car is thinking about. Rendered images, not SVG: the shading and
 // masks don't survive vector export. Each file is 256px, 2x the 128px it's shown at.
 import Image from "next/image";
+import alert from "./thoughts/alert.webp";
 import back from "./thoughts/back.webp";
 import chat from "./thoughts/chat.webp";
 import check from "./thoughts/check.webp";
 import done from "./thoughts/done.webp";
+import headset from "./thoughts/headset.webp";
 import help from "./thoughts/help.webp";
 import idea from "./thoughts/idea.webp";
 import map from "./thoughts/map.webp";
 import navigate from "./thoughts/navigate.webp";
 import pin from "./thoughts/pin.webp";
+import remote from "./thoughts/remote.webp";
 import search from "./thoughts/search.webp";
 import settings from "./thoughts/settings.webp";
 import support from "./thoughts/support.webp";
 import warning from "./thoughts/warning.webp";
 
 // Named by meaning, not by Figma layer: "R-Send" is the headphones, "L-Share" the back arrow,
-// "L-Location" the navigation arrow, "L-Tick Square" is `done`.
+// "L-Location" the navigation arrow, "L-Tick Square" is `done`. `help` is the muted (grey) variant
+// from the Stalled frame (node 561:111), not the blue one in the icon set. `alert` is the muted
+// "!" from the Stalled — 3 frame: Figma's R-Info Circle turned 180° (node 558:8337). `remote` is
+// the VR headset (L-VR Glasses, node 573:13727): a remote agent is looking at the car's view.
+// `headset` is the muted R-Send (headphones) from the Ride Support frame (node 571:9813); `support`
+// is the blue one from the icon set.
 const THOUGHTS = {
+  alert,
   back,
   chat,
   check,
   done,
+  headset,
   help,
   idea,
   map,
   navigate,
   pin,
+  remote,
   search,
   settings,
   support,
@@ -38,11 +49,12 @@ export type Thought = keyof typeof THOUGHTS;
 
 export type ThoughtIconProps = {
   name: Thought;
+  /** Sizes the icon. Replaces the default rather than adding to it. @default "size-32" */
   className?: string;
 };
 
 /** Decorative: the bubble's status is announced separately, like the orb. */
-export function ThoughtIcon({ name, className }: ThoughtIconProps) {
+export function ThoughtIcon({ name, className = "size-32" }: ThoughtIconProps) {
   return (
     <Image
       src={THOUGHTS[name]}
@@ -52,7 +64,7 @@ export function ThoughtIcon({ name, className }: ThoughtIconProps) {
       unoptimized
       loading="eager"
       draggable={false}
-      className={["size-32", className].filter(Boolean).join(" ")}
+      className={className}
     />
   );
 }

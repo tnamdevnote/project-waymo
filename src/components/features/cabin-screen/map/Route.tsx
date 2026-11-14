@@ -6,7 +6,8 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useCabinScreen } from "../CabinScreenRoot";
-import { cssVar, loop } from "./world";
+import { pathAt } from "./detour";
+import { cssVar, type Loop } from "./world";
 
 const vertexShader = /* glsl */ `
 attribute float aDist;
@@ -41,9 +42,9 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-function buildRibbon(width: number) {
+function buildRibbon(course: Loop, width: number, detour: number | null) {
   const step = 0.5;
-  const n = Math.ceil(loop.len / step) + 1;
+  const n = Math.ceil(course.len / step) + 1;
   const pos = new Float32Array(n * 6);
   const dist = new Float32Array(n * 2);
   const side = new Float32Array(n * 2);
@@ -52,11 +53,11 @@ function buildRibbon(width: number) {
   const a = new THREE.Vector3();
   const b = new THREE.Vector3();
   for (let i = 0; i < n; i++) {
-    const d = Math.min(i * step, loop.len);
-    loop.at(d, p);
-    loop
-      .at(d + 0.5, a)
-      .sub(loop.at(d - 0.5, b))
+    const d = Math.min(i * step, course.len);
+    // Along the car's path, so the route shows the way round an obstruction while there is one.
+    pathAt(course, d, detour, p, true);
+    pathAt(course, d + 0.5, detour, a, true)
+      .sub(pathAt(course, d - 0.5, detour, b, true))
       .normalize();
     const rx = -a.z * (width / 2);
     const rz = a.x * (width / 2);
@@ -89,13 +90,14 @@ export function Route({
   /** Strip width, meters. */
   width?: number;
 }) {
-  const { meta } = useCabinScreen();
-  const geometry = useMemo(() => buildRibbon(width), [width]);
+  const { meta, state } = useCabinScreen();
+  const { course, detour } = state;
+  const geometry = useMemo(() => buildRibbon(course, width, detour), [course, width, detour]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   const uniforms = useMemo(
     () => ({
       uCar: { value: 0 },
-      uLen: { value: loop.len },
+      uLen: { value: 0 }, // written every frame, with the course
       uAhead: { value: 0 }, // written every frame from the props
       uBehind: { value: 0 },
       uAheadColor: { value: new THREE.Color(cssVar("--waymo-green")) },
@@ -106,6 +108,7 @@ export function Route({
 
   useFrame(() => {
     uniforms.uCar.value = meta.getSnapshot().dist;
+    uniforms.uLen.value = course.len;
     uniforms.uAhead.value = ahead;
     uniforms.uBehind.value = Math.max(behind, 0.01);
   });

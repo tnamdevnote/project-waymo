@@ -25,11 +25,12 @@ function rgb(hex: string) {
 
 export type VehicleOrbProps = {
   state: OrbState;
+  /** Sizes the orb. Replaces the default rather than adding to it. @default "size-32" */
   className?: string;
 };
 
 /** Decorative: the bubble's status is announced separately. Client-only; it reads the theme. */
-export function VehicleOrb({ state, className }: VehicleOrbProps) {
+export function VehicleOrb({ state, className = "size-32" }: VehicleOrbProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -68,11 +69,5 @@ export function VehicleOrb({ state, className }: VehicleOrbProps) {
     return () => cancelAnimationFrame(raf);
   }, [state]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden
-      className={["size-32", className].filter(Boolean).join(" ")}
-    />
-  );
+  return <canvas ref={canvasRef} aria-hidden className={className} />;
 }

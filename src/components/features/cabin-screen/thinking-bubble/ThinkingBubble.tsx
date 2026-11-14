@@ -28,22 +28,21 @@ export type ThinkingBubbleContentProps = Omit<TooltipContentProps, "showArrow" |
 // The cloud is a big circle with a smaller puff fused to its lower-left, the side facing the
 // anchor. Both are drawn twice: first with the shadow, then a plain fill on top. The fills cover
 // the shadow where the circles overlap, so the cloud reads as one shape with one shadow.
-const CLOUD = "pointer-events-none absolute top-0 right-0 size-56 rounded-full bg-overlay";
-const PUFF = "pointer-events-none absolute top-38 left-1.5 size-20 rounded-full bg-overlay";
+const CLOUD = "pointer-events-none absolute top-0 right-0 size-44 rounded-full bg-overlay";
+const PUFF = "pointer-events-none absolute top-30 left-1 size-16 rounded-full bg-overlay";
 
 /**
  * The cloud. Defaults put it above and to the right of the anchor, with the puff just past it.
  * Its children are the "thought", centered in the big circle: one glyph, read at a glance. To
  * switch between glyphs while open, wrap each in a `ThinkingBubble.Glyph`.
  *
- * React Aria won't let `crossOffset` move a tooltip past the edge of its anchor, so the puff is
- * moved clear of the anchor with `ml-7` instead. Override it with `className`.
+ * The puff sits right over the anchor's x, so point the anchor at the corner it should hang on.
  */
 function Content({
   children,
   className,
   placement = "top start",
-  offset = 12,
+  offset = 20,
   ...props
 }: ThinkingBubbleContentProps) {
   return (
@@ -51,7 +50,7 @@ function Content({
       placement={placement}
       offset={offset}
       className={cx(
-        "thinking-bubble relative ml-7 size-58 max-w-none rounded-none bg-transparent p-0 text-overlay-foreground shadow-none select-none",
+        "thinking-bubble relative size-46 max-w-none rounded-none bg-transparent p-0 text-overlay-foreground shadow-none select-none",
         className,
       )}
       {...props}
@@ -60,7 +59,7 @@ function Content({
       <span aria-hidden className={cx(PUFF, "shadow-float")} />
       <span aria-hidden className={CLOUD} />
       <span aria-hidden className={PUFF} />
-      <div className="absolute top-0 right-0 grid size-56 place-items-center">{children}</div>
+      <div className="absolute top-0 right-0 grid size-44 place-items-center">{children}</div>
     </Tooltip.Content>
   );
 }
