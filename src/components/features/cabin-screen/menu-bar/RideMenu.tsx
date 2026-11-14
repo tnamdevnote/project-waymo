@@ -1,10 +1,12 @@
 "use client";
 
-// CabinScreen.RideMenu: the floating menu bar shown during the ride. Pull over is wired to the
-// cabin state; the rest report presses so the screen can open its own panels.
+// CabinScreen.RideMenu: the floating menu bar shown during the ride. Pull over asks first in a
+// sheet, then stops the car; Resume ride drives on straight away. The rest report presses so the
+// screen can open its own panels.
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useCabinScreen } from "../CabinScreenRoot";
+import { PullOverSheet } from "../pull-over/PullOverSheet";
 import { TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
 
@@ -131,6 +133,7 @@ export function RideMenu({
   const onCall = state.support !== null;
   const diagnosing = state.diagnosis !== null || state.reroute !== null || onCall;
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [pullOverOpen, setPullOverOpen] = useState(false);
   // "Call support", "Something else" and "None of these" in the sheet, and the bar's own Support
   // item during diagnosis or rerouting, all put the rider through to Support.
   const callSupport = () => {
@@ -183,9 +186,19 @@ export function RideMenu({
             <MenuBar.Separator />
           </>
         )}
-        <MenuBar.Item onPress={state.driving ? actions.pullOver : actions.resume}>
-          {state.driving ? "Pull over" : "Resume ride"}
-        </MenuBar.Item>
+        {/* Pull over is the confirmation sheet's trigger, like Troubleshoot. The sheet stays
+            mounted once the car stops and the item turns into Resume ride, so it can slide out. */}
+        <BottomSheet isOpen={pullOverOpen} onOpenChange={setPullOverOpen}>
+          {state.driving && <MenuBar.Item>Pull over</MenuBar.Item>}
+          <PullOverSheet
+            onCancel={() => setPullOverOpen(false)}
+            onConfirm={() => {
+              setPullOverOpen(false);
+              actions.pullOver();
+            }}
+          />
+        </BottomSheet>
+        {!state.driving && <MenuBar.Item onPress={actions.resume}>Resume ride</MenuBar.Item>}
         <MenuBar.Separator />
         {state.support === "connecting" && (
           <MenuBar.Item tone="danger" onPress={actions.endSupport}>
