@@ -8,6 +8,7 @@ import { Route } from "./map/Route";
 import { Traffic } from "./map/Traffic";
 import { Vehicle } from "./map/Vehicle";
 import { Viewport } from "./map/Viewport";
+import { Arrival } from "./arrival/ArrivalPill";
 import { CabinScreenRoot } from "./CabinScreenRoot";
 import { Diagnosis } from "./diagnosis/Diagnosis";
 import { RideMenu } from "./menu-bar/RideMenu";
@@ -21,6 +22,7 @@ export const CabinScreen = {
   Root: CabinScreenRoot,
   StartRide,
   RideMenu,
+  Arrival,
   VehicleThought,
   Diagnosis,
   Reroute,
@@ -53,6 +55,7 @@ export type {
 export type { DiagnosisProps } from "./diagnosis/Diagnosis";
 export type { RerouteProps } from "./reroute/Reroute";
 export type { SupportProps } from "./support/Support";
+export type { ArrivalPillProps } from "./arrival/ArrivalPill";
 export type { RideMenuProps } from "./menu-bar/RideMenu";
 export type { StartRideProps } from "./start-ride/StartRide";
 export type { Motion } from "./sim";

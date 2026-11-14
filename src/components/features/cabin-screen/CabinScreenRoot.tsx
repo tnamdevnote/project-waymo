@@ -67,6 +67,16 @@ export type SupportStage = "connecting" | "connected";
 /** How long "connecting" shows before the agent picks up. */
 const CONNECTING_MS = 3000;
 
+/**
+ * Minutes each new route adds to the trip, once the rider confirms it. The 3D city is too small
+ * for its distances to mean anything, so these are set by hand: around the block, or back the way
+ * the car came.
+ */
+const ROUTE_DELAY_MIN = new Map<Loop, number>([
+  [rerouteLoop, 2],
+  [uturnLoop, 4],
+]);
+
 /** How long "rerouting" shows before the new route is ready. */
 const REROUTING_MS = 3000;
 
@@ -98,6 +108,8 @@ export type CabinScreenState = {
   motion: Motion;
   /** Cruise speed, m/s. */
   speed: number;
+  /** Minutes the confirmed reroutes have added to the trip, in total. 0 on the original route. */
+  delay: number;
 };
 
 export type CabinScreenActions = {
@@ -180,6 +192,8 @@ function createEngine(
   let snapshot = live();
 
   return {
+    /** The loop the car is driving right now. */
+    course: () => course,
     configure(next: { cruise: number; driving: boolean }) {
       cruise = next.cruise;
       sim.pullOver = !next.driving;
@@ -323,6 +337,7 @@ function CabinScreenRun({
   const [motion, setMotion] = useState<Motion>("stopped");
   const [detour, setDetour] = useState<number | null>(null);
   const [course, setCourse] = useState<Loop>(loop);
+  const [delay, setDelay] = useState(0);
   const [engine] = useState(() => createEngine(setMotion, setDetour, setCourse));
 
   // Rerouting: work it out, then show the new route and wait for the rider to confirm it.
@@ -378,6 +393,8 @@ function CabinScreenRun({
       endDiagnosis: () => setDiagnosis(null),
       startReroute: () => setReroute("rerouting"),
       confirmReroute: () => {
+        const added = ROUTE_DELAY_MIN.get(engine.course()) ?? 0;
+        setDelay((d) => d + added);
         engine.escape();
         setReroute(null);
       },
@@ -400,7 +417,7 @@ function CabinScreenRun({
 
   const value = useMemo<CabinScreenContextValue>(
     () => ({
-      state: { phase, diagnosis, reroute, support, course, detour, driving, motion, speed },
+      state: { phase, diagnosis, reroute, support, course, detour, driving, motion, speed, delay },
       actions,
       meta: engine.meta,
       anchors,
@@ -415,6 +432,7 @@ function CabinScreenRun({
       driving,
       motion,
       speed,
+      delay,
       actions,
       engine,
       anchors,

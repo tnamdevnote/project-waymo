@@ -17,6 +17,7 @@ export default function Home() {
         <CabinScreen.Reroute />
         <CabinScreen.Support />
         <CabinScreen.VehicleThought />
+        <CabinScreen.Arrival minutes={10} at="3:30" />
         <CabinScreen.RideMenu />
         <CabinScreen.Reset />
         <CabinScreen.StartRide rider="Taek Been" destination="2105 Comal St" />
