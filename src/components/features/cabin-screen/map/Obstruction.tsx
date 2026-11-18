@@ -69,7 +69,8 @@ const subscribeReduced = (on: () => void) => {
 
 export function Obstruction() {
   const { state } = useCabinScreen();
-  const shown = state.diagnosis === "detected";
+  // Diagnosis only runs in a world with a lane closure, but don't mark one where there isn't.
+  const shown = state.world.cones && state.diagnosis === "detected";
   const reduced = useSyncExternalStore(
     subscribeReduced,
     () => matchMedia(REDUCED).matches,

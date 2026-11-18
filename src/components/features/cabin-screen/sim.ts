@@ -21,18 +21,25 @@ export type Sim = {
   hold: number;
   served: number;
   pullOver: boolean;
+  /** Whether the car halts at its loop's stop point (`Loop.stopAt`) at all. */
+  stops: boolean;
+  /** A one-off stop, as a route distance (not wrapped): where the car pulls up to reroute, or
+   *  the end of the new route. It holds there until this is cleared. */
+  target: number | null;
   braking: boolean;
   /** Braking to a standstill (pull over or stop line), not just slowing for a turn. */
   stopping: boolean;
 };
 
-export const newSim = (): Sim => ({
+export const newSim = (stops = true): Sim => ({
   dist: 0,
   v: 0,
   time: 0,
   hold: 0,
   served: -1,
   pullOver: false,
+  stops,
+  target: null,
   braking: false,
   stopping: false,
 });
@@ -55,11 +62,13 @@ export function stepSim(sim: Sim, dt: number, cruise: number, loop: Loop) {
     }
   }
   const next = nextStop(sim, loop);
-  const toStop = next - sim.dist;
+  let toStop = sim.stops ? next - sim.dist : Infinity;
+  if (sim.target !== null) toStop = Math.min(toStop, sim.target - sim.dist);
   const stopCap = Math.sqrt(2 * DECEL * Math.max(0, toStop - 0.05));
   const forStopLine = stopCap < target && stopCap < sim.v + 0.5;
   target = Math.min(target, stopCap);
-  if (toStop < 0.6 && sim.v < 0.25) {
+  // Only the loop's own stop is ever released by the hold; a target holds until it's cleared.
+  if (toStop < 0.6 && sim.v < 0.25 && sim.target === null) {
     sim.hold += dt;
     if (sim.hold > STOP_HOLD) {
       sim.served = next;

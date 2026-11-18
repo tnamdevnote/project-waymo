@@ -5,10 +5,22 @@
 // screen can open its own panels.
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { useCabinScreen } from "../CabinScreenRoot";
-import { PullOverSheet } from "../pull-over/PullOverSheet";
-import { TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
+import { type RideScenario, useCabinScreen } from "../CabinScreenRoot";
+import { PullOverSheet } from "../pull-over/PullOverSheet";
+import { type RideIssue, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
+
+/**
+ * What "Report ride issue" offers in each demo scenario. Stalled: the car is stopped at the
+ * cones, so "seems lost" doesn't apply. Looping: it keeps circling with nothing in the way, so
+ * "stuck" doesn't. Rerouting: it finds its own way round traffic.
+ */
+const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {
+  stalled: ["Waymo is stuck", "Something else"],
+  looping: ["Waymo seems lost", "Something else"],
+  // The car reroutes round traffic on its own; nothing in its way to report.
+  rerouting: ["Something else"],
+};
 
 function MusicIcon() {
   return (
@@ -239,6 +251,7 @@ export function RideMenu({
             </MenuBar.Item>
           )}
           <TroubleshootSheet
+            issues={ISSUES_BY_SCENARIO[state.scenario]}
             onCallSupport={callSupport}
             onReportIssue={(issue) => {
               if (issue === "Something else") callSupport();

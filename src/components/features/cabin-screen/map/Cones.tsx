@@ -4,6 +4,7 @@
 // bases, each with one white reflective band. Positions come from CONES in world.ts.
 import { useEffect, useMemo } from "react";
 import * as THREE from "three";
+import { useCabinScreen } from "../CabinScreenRoot";
 import { CONES, cssVar } from "./world";
 
 const BASE = { size: 0.8, height: 0.12 };
@@ -14,6 +15,8 @@ const BAND = { from: 0.5, to: 0.68 };
 const radiusAt = (t: number) => BODY.bottom + (BODY.top - BODY.bottom) * t;
 
 export function Cones() {
+  // Only the Stalled world has a lane closure.
+  const { cones } = useCabinScreen().state.world;
   const colors = useMemo(() => {
     const danger = new THREE.Color(cssVar("--danger"));
     return {
@@ -45,6 +48,7 @@ export function Cones() {
   );
 
   const bandY = BASE.height + (BODY.height * (BAND.from + BAND.to)) / 2;
+  if (!cones) return null;
 
   return (
     <>

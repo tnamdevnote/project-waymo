@@ -16,6 +16,7 @@ import { Reroute } from "./reroute/Reroute";
 import { Reset } from "./reset/ResetButton";
 import { StartRide } from "./start-ride/StartRide";
 import { Support } from "./support/Support";
+import { TrafficReroute } from "./traffic/TrafficReroute";
 import { VehicleThought } from "./thinking-bubble/VehicleThought";
 
 export const CabinScreen = {
@@ -27,6 +28,7 @@ export const CabinScreen = {
   Diagnosis,
   Reroute,
   Support,
+  TrafficReroute,
   Reset,
 };
 export const CabinMap = { Viewport, City, Cones, Obstruction, Traffic, Route, Vehicle, Camera };
@@ -43,7 +45,9 @@ export type {
   DiagnosisStage,
   RerouteStage,
   RidePhase,
+  RideScenario,
   SupportStage,
+  TrafficStage,
 } from "./CabinScreenRoot";
 export { TroubleshootSheet } from "./troubleshoot/TroubleshootSheet";
 export type {
@@ -55,6 +59,7 @@ export type {
 export type { DiagnosisProps } from "./diagnosis/Diagnosis";
 export type { RerouteProps } from "./reroute/Reroute";
 export type { SupportProps } from "./support/Support";
+export type { TrafficRerouteProps } from "./traffic/TrafficReroute";
 export type { ArrivalPillProps } from "./arrival/ArrivalPill";
 export type { RideMenuProps } from "./menu-bar/RideMenu";
 export type { StartRideProps } from "./start-ride/StartRide";

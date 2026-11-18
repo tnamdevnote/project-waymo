@@ -5,10 +5,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { type Box, BUILDING_RADIUS, buildCity, buildMarkings, CURB_RADIUS, cssVar } from "./world";
-
-const city = buildCity();
-const marks = buildMarkings();
+import { useCabinScreen } from "../CabinScreenRoot";
+import { type Box, BUILDING_RADIUS, CURB_RADIUS, cssVar } from "./world";
 
 function Boxes({
   items,
@@ -110,10 +108,11 @@ function Merged({
   );
 }
 
-const slabs = () => slabGeometry(city.slabs);
-const buildings = () => buildingGeometry(city.buildings);
-
 export function City() {
+  // The scenario's streets; built once per world in world.ts.
+  const { city, markings: marks } = useCabinScreen().state.world;
+  const slabs = useMemo(() => () => slabGeometry(city.slabs), [city]);
+  const buildings = useMemo(() => () => buildingGeometry(city.buildings), [city]);
   const road = useMemo(() => cssVar("--waymo-slate"), []);
   const sidewalk = useMemo(() => cssVar("--surface-secondary"), []);
   const building = useMemo(() => cssVar("--surface-tertiary"), []);

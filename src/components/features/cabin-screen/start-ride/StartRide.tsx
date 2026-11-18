@@ -5,6 +5,7 @@
 import { Link } from "@heroui/react";
 import { type ComponentProps, useSyncExternalStore } from "react";
 import { useCabinScreen } from "../CabinScreenRoot";
+import { ScenarioPicker } from "./ScenarioPicker";
 import { StartRideButton } from "@/components/ui/StartRideButton";
 import { SupportButton } from "@/components/ui/SupportButton";
 
@@ -61,13 +62,16 @@ export function StartRide({
       {...props}
     >
       <header className="flex flex-col gap-8">
-        <p className="flex items-center gap-4 text-caption">
-          <span className="font-medium tracking-[0.3em]">WAYMO</span>
-          <span aria-hidden className="text-muted">
-            ×
-          </span>
-          <span>Uber</span>
-        </p>
+        <div className="flex items-center justify-between gap-8">
+          <p className="flex items-center gap-4 text-caption">
+            <span className="font-medium tracking-[0.3em]">WAYMO</span>
+            <span aria-hidden className="text-muted">
+              ×
+            </span>
+            <span>Uber</span>
+          </p>
+          <ScenarioPicker />
+        </div>
 
         <div className="grid grid-cols-[3fr_2fr] items-start gap-12">
           <h1 className="text-heading text-balance">

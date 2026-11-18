@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { useCabinScreen } from "../CabinScreenRoot";
-import { TRAFFIC, carSpot, createTraffic, cssVar, stepTraffic } from "./world";
+import { carSpot, createTraffic, cssVar, stepTraffic } from "./world";
 
 // [width, height, length] in meters; total height matches the old 1.45 m box.
 const BODY: [number, number, number] = [1.9, 0.85, 4.5];
@@ -19,14 +19,14 @@ const CABIN_RADIUS = 0.25;
 // Cabin sits on the body, nudged toward the rear like a sedan greenhouse.
 const CABIN_OFFSET = new THREE.Matrix4().makeTranslation(0, (BODY[1] + CABIN[1]) / 2, -0.25);
 
-const TOTAL = TRAFFIC.reduce((n, l) => n + l.count, 0);
-
 const TRAFFIC_OPACITY = 0.7;
 // How far the car color moves from --surface toward --waymo-blue (0 = white, 1 = full brand blue).
 const TRAFFIC_TINT = 0.55;
 
 export function Traffic({ range = 60 }: { range?: number }) {
-  const { meta } = useCabinScreen();
+  const { meta, state } = useCabinScreen();
+  const { world } = state;
+  const total = useMemo(() => world.traffic.reduce((n, l) => n + l.count, 0), [world]);
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const cabinRef = useRef<THREE.InstancedMesh>(null);
   const geometry = useMemo(
@@ -44,7 +44,7 @@ export function Traffic({ range = 60 }: { range?: number }) {
     [geometry],
   );
   // Mutable traffic state, stepped on the drive sim's clock so it pauses with it.
-  const traffic = useMemo(() => ({ cars: createTraffic(), time: -1 }), []);
+  const traffic = useMemo(() => ({ cars: createTraffic(world.traffic), time: -1 }), [world]);
   const tmp = useMemo(
     () => ({
       o: new THREE.Object3D(),
@@ -69,7 +69,12 @@ export function Traffic({ range = 60 }: { range?: number }) {
     const live = meta.getSnapshot();
     tmp.ego.set(live.x, 0, live.z);
     if (traffic.time < 0) traffic.time = live.time;
-    stepTraffic(traffic.cars, live.time, Math.min(Math.max(live.time - traffic.time, 0), 0.05));
+    stepTraffic(
+      traffic.cars,
+      live.time,
+      Math.min(Math.max(live.time - traffic.time, 0), 0.05),
+      world.grid,
+    );
     traffic.time = live.time;
     traffic.cars.forEach((car, i) => {
       carSpot(car, tmp.p);
@@ -94,10 +99,21 @@ export function Traffic({ range = 60 }: { range?: number }) {
 
   return (
     <>
-      <instancedMesh ref={bodyRef} args={[geometry.body, undefined, TOTAL]} frustumCulled={false}>
+      {/* Keyed by world: an instanced mesh's count is fixed when it's created. */}
+      <instancedMesh
+        key={`body-${total}`}
+        ref={bodyRef}
+        args={[geometry.body, undefined, total]}
+        frustumCulled={false}
+      >
         <meshLambertMaterial transparent opacity={TRAFFIC_OPACITY} />
       </instancedMesh>
-      <instancedMesh ref={cabinRef} args={[geometry.cabin, undefined, TOTAL]} frustumCulled={false}>
+      <instancedMesh
+        key={`cabin-${total}`}
+        ref={cabinRef}
+        args={[geometry.cabin, undefined, total]}
+        frustumCulled={false}
+      >
         <meshLambertMaterial transparent opacity={TRAFFIC_OPACITY} />
       </instancedMesh>
     </>

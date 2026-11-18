@@ -40,7 +40,7 @@ export type VehicleThoughtProps = Omit<ThinkingBubbleContentProps, "children" | 
 
 export function VehicleThought(props: VehicleThoughtProps) {
   const { state, meta, anchors } = useCabinScreen();
-  const { motion, driving, phase, diagnosis, reroute, support } = state;
+  const { motion, driving, phase, diagnosis, reroute, support, arriving } = state;
   // Diagnosing, rerouting or on a Support call: the bubble says that, not the red light.
   const busy = diagnosis !== null || reroute !== null || support !== null;
   const auto = phase === "riding" && driving;
@@ -51,7 +51,8 @@ export function VehicleThought(props: VehicleThoughtProps) {
   const [prevMotion, setPrevMotion] = useState(motion);
   if (motion !== prevMotion) {
     setPrevMotion(motion);
-    if (motion === "stopping" && auto) {
+    // Stopping at the end of a confirmed route is arriving, not being stuck: no question mark.
+    if (motion === "stopping" && auto && !arriving) {
       setLight("red");
       setShown("red");
     } else if (motion === "driving" && light === "red") {

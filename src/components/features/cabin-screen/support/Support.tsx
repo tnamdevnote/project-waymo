@@ -65,7 +65,8 @@ export function Support({ className }: SupportProps) {
       {/* Demo only: stands in for the agent sending the car back the way it came, so a presenter
           can move the story on to the U-turn route. Bottom-left, centred on the menu bar's
           items (mb-9 plus the panel's pb-6 puts its 80px height level with them). */}
-      {shown === "connected" && (
+      {/* Only where there's a way back to send the car: not in Looping, which has no closure. */}
+      {shown === "connected" && state.world.uturn && (
         <Button
           variant="secondary"
           size="lg"

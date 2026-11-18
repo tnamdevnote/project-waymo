@@ -75,6 +75,9 @@ function Hold911Tile({ onCall }: { onCall?: () => void }) {
   );
 }
 
+/** One column per issue tile, up to three. */
+const COLS = ["grid-cols-1", "grid-cols-2", "grid-cols-3"];
+
 export const rideIssues = ["Waymo is stuck", "Waymo seems lost", "Something else"] as const;
 export type RideIssue = (typeof rideIssues)[number];
 
@@ -85,6 +88,8 @@ export const lostReasons = ["Try Another Path", "None of these"] as const;
 export type LostReason = (typeof lostReasons)[number];
 
 export type TroubleshootSheetProps = Omit<BottomSheetContentProps, "children"> & {
+  /** Which issues "Report ride issue" offers, in order. Defaults to all of `rideIssues`. */
+  issues?: readonly RideIssue[];
   onReport?: () => void;
   onReportIssue?: (issue: RideIssue) => void;
   /** The rider's answer to the follow-up question after "Waymo is stuck". */
@@ -99,6 +104,7 @@ type TroubleshootBodyProps = Omit<TroubleshootSheetProps, keyof BottomSheetConte
 
 // Lives inside the dialog, which unmounts on close, so the sheet always reopens on the first step.
 function TroubleshootBody({
+  issues = rideIssues,
   onReport,
   onReportIssue,
   onStuckReason,
@@ -140,8 +146,8 @@ function TroubleshootBody({
           </div>
         )}
         {step === "report" && (
-          <div className="grid grid-cols-3 gap-4">
-            {rideIssues.map((issue) => (
+          <div className={["grid gap-4", COLS[Math.min(issues.length, 3) - 1]].join(" ")}>
+            {issues.map((issue) => (
               <ActionTile
                 key={issue}
                 onPress={() => {
@@ -179,6 +185,7 @@ function TroubleshootBody({
 }
 
 export function TroubleshootSheet({
+  issues,
   onReport,
   onReportIssue,
   onStuckReason,
@@ -190,6 +197,7 @@ export function TroubleshootSheet({
   return (
     <BottomSheet.Content {...props}>
       <TroubleshootBody
+        issues={issues}
         onReport={onReport}
         onReportIssue={onReportIssue}
         onStuckReason={onStuckReason}

@@ -2,8 +2,8 @@
 
 // CabinScreen.Arrival: a read-only pill at the top center that tells the rider when they'll get
 // there. Fades in once the ride starts; hidden under the Start ride takeover. When the rider
-// confirms a new route, the time moves by what that route adds and the pill shows the difference
-// ("+2 min") for a few seconds.
+// confirms a new route, or the car takes a faster one round traffic, the time moves and the pill
+// shows the difference ("+2 min", "4 min sooner") for a few seconds.
 import { Chip } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { useCabinScreen } from "../CabinScreenRoot";
@@ -39,7 +39,8 @@ export function Arrival({ minutes, at, className }: ArrivalPillProps) {
   const diff = change?.by ?? null;
   if (delay !== seen) {
     setSeen(delay);
-    setChange({ by: delay - seen });
+    // Only a change during the ride is news; picking a scenario while boarding isn't.
+    if (!hidden) setChange({ by: delay - seen });
   }
   useEffect(() => {
     if (!change) return;
@@ -73,10 +74,15 @@ export function Arrival({ minutes, at, className }: ArrivalPillProps) {
           Arrival in {minutes + delay} min at {time}
         </Chip.Label>
         {diff !== null && (
-          <Chip color="warning" variant="soft" size="lg" className="h-12 rounded-full px-4">
+          // Later is a caution; sooner is good news.
+          <Chip
+            color={diff > 0 ? "warning" : "success"}
+            variant="soft"
+            size="lg"
+            className="h-12 rounded-full px-4"
+          >
             <Chip.Label className="text-caption font-medium">
-              {diff > 0 ? "+" : "−"}
-              {Math.abs(diff)} min
+              {diff > 0 ? `+${diff} min` : `${-diff} min sooner`}
             </Chip.Label>
           </Chip>
         )}

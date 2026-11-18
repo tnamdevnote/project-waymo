@@ -16,7 +16,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { DETOUR_LENGTH, pathAt } from "./map/detour";
-import { type Loop, loop, rerouteLoop, uturnLoop, wrap } from "./map/world";
+import { LOOP_WORLD, type Loop, REROUTE_WORLD, STALL_WORLD, type World, wrap } from "./map/world";
 import { type Motion, motionOf, newSim, nextStop, stepSim } from "./sim";
 
 /** Live per-frame values. A new object each frame, so it works with useSyncExternalStore. */
@@ -34,6 +34,21 @@ export type CabinLive = {
   heading: number;
   /** Slowing down hard enough to light the brake lights. */
   braking: boolean;
+};
+
+/**
+ * Which demo story the ride plays, picked on the Start ride screen. "stalled": the car stops at
+ * the cones and the rider troubleshoots it. "looping": the car circles one small block with
+ * nothing in the way, and the rider reports it lost. "rerouting": the car finds heavy traffic
+ * ahead and takes a faster way on its own; the rider doesn't have to do anything.
+ */
+export type RideScenario = "stalled" | "looping" | "rerouting";
+
+/** The city and loops each scenario plays on. */
+const WORLD_BY_SCENARIO: Record<RideScenario, World> = {
+  stalled: STALL_WORLD,
+  looping: LOOP_WORLD,
+  rerouting: REROUTE_WORLD,
 };
 
 /** Where the ride is: waiting for the rider to press Start ride, or under way. */
@@ -64,6 +79,21 @@ export type RerouteStage = "rerouting" | "overview";
  */
 export type SupportStage = "connecting" | "connected";
 
+/**
+ * The car reroutes round heavy traffic on its own (Rerouting scenario), with no rider input.
+ * "rerouting": a flat map shows the jam and the way the car is considering. "found": it has
+ * switched to the new route and the map shows it, with the time saved. "switched": back on the
+ * 3D map, with a short note that it's on the faster route. "done": nothing left to show.
+ */
+export type TrafficStage = "rerouting" | "found" | "switched" | "done";
+
+/** How long each traffic stage shows before the next. */
+const TRAFFIC_MS: Record<Exclude<TrafficStage, "done">, number> = {
+  rerouting: 3000,
+  found: 3000,
+  switched: 4000,
+};
+
 /** How long "connecting" shows before the agent picks up. */
 const CONNECTING_MS = 3000;
 
@@ -73,12 +103,12 @@ const CONNECTING_MS = 3000;
  * the car came.
  */
 const ROUTE_DELAY_MIN = new Map<Loop, number>([
-  [rerouteLoop, 2],
-  [uturnLoop, 4],
+  ...[...STALL_WORLD.reroutes, ...LOOP_WORLD.reroutes].map((o): [Loop, number] => [o.to, 2]),
+  ...(STALL_WORLD.uturn ? [[STALL_WORLD.uturn, 4] as [Loop, number]] : []),
 ]);
 
-/** How long "rerouting" shows before the new route is ready. */
-const REROUTING_MS = 3000;
+/** Planned braking when the car pulls up to reroute, m/s² (the sim's own DECEL). */
+const PULL_UP_DECEL = 2.5;
 
 /** Where each stage goes next on its own, and after how long. */
 const NEXT_STAGE: Partial<Record<DiagnosisStage, { to: DiagnosisStage; ms: number }>> = {
@@ -91,6 +121,9 @@ const NEXT_STAGE: Partial<Record<DiagnosisStage, { to: DiagnosisStage; ms: numbe
 const CONFIRMED_MS = 3000;
 
 export type CabinScreenState = {
+  scenario: RideScenario;
+  /** The scenario's city and loops. */
+  world: World;
   phase: RidePhase;
   /** Set while the car diagnoses a stall the rider reported; null otherwise. */
   diagnosis: DiagnosisStage | null;
@@ -98,7 +131,10 @@ export type CabinScreenState = {
   reroute: RerouteStage | null;
   /** Set while the rider is on a call with Ride Support; null otherwise. */
   support: SupportStage | null;
-  /** The loop the car is driving: `loop`, or `rerouteLoop` / `uturnLoop` once it has rerouted. */
+  /** Where the car's own reroute round traffic is; null until it notices the traffic. */
+  traffic: TrafficStage | null;
+  /** The loop the car is driving: `world.loop`, or a reroute's `to` / `world.uturn` once it has
+   *  rerouted. */
   course: Loop;
   /** Route distance (not wrapped) where the car's detour around an obstruction starts, while it
    *  is on it or just past it; null otherwise. See map/detour.ts. */
@@ -108,11 +144,15 @@ export type CabinScreenState = {
   motion: Motion;
   /** Cruise speed, m/s. */
   speed: number;
-  /** Minutes the confirmed reroutes have added to the trip, in total. 0 on the original route. */
+  /** Minutes on top of the base arrival time: the world's `startDelay` plus what reroutes have
+   *  added (or, below it, saved). */
   delay: number;
+  /** The rider confirmed a new route: the car drives to its end and stops there for good. */
+  arriving: boolean;
 };
 
 export type CabinScreenActions = {
+  setScenario: (scenario: RideScenario) => void;
   startRide: () => void;
   pullOver: () => void;
   resume: () => void;
@@ -162,12 +202,28 @@ export type CabinScreenContextValue = {
 
 /* ---------- Engine: the mutable sim plus a tiny external store ---------- */
 
+/**
+ * Which leg of `loop` route distance `d` (wrapped) is on, counting each leg as running up to the
+ * end of the turn at its far end, and the distance its straight starts at.
+ */
+function legOf(loop: Loop, d: number) {
+  let start = 0;
+  for (let k = 0; k < loop.corners.length; k++) {
+    if (d < loop.corners[k][1]) return { leg: k, start };
+    start = loop.corners[k][1];
+  }
+  return { leg: 0, start: loop.len };
+}
+
 function createEngine(
+  initial: World,
   onMotion: (m: Motion) => void,
   onDetour: (from: number | null) => void,
   onCourse: (course: Loop) => void,
 ) {
-  const sim = newSim();
+  let world = initial;
+  // Only a world with a lane closure stops on its own; the others stop to reroute.
+  let sim = newSim(world.cones);
   const listeners = new Set<() => void>();
   let cruise = 9;
   let motion = motionOf(sim);
@@ -175,7 +231,7 @@ function createEngine(
   const ahead = new THREE.Vector3();
   const behind = new THREE.Vector3();
   let detour: number | null = null;
-  let course = loop;
+  let course = world.loop;
   const live = (): CabinLive => {
     pathAt(course, sim.dist, detour, pos);
     pathAt(course, sim.dist + 1, detour, ahead).sub(pathAt(course, sim.dist - 1, detour, behind));
@@ -190,43 +246,93 @@ function createEngine(
     };
   };
   let snapshot = live();
+  /** On a new route, drive to its end (the reroute map's pin) and stop there. */
+  const driveToEnd = () => {
+    const option = world.reroutes.find((o) => o.to === course);
+    sim.target = option ? option.end : course === world.uturn ? world.uturnEnd : null;
+  };
 
   return {
     /** The loop the car is driving right now. */
     course: () => course,
+    /** Start over in another world, from the start of its loop. Only while boarding. */
+    setWorld(next: World) {
+      if (next === world) return;
+      world = next;
+      sim = newSim(world.cones);
+      course = world.loop;
+      detour = null;
+      onCourse(course);
+      onDetour(null);
+      snapshot = live();
+      for (const l of listeners) l();
+    },
+    /**
+     * Pull up just ahead, to work out a new route there: as soon as the car can stop gently, but
+     * never in a turn or just before one (then just after it instead). A world with cones is
+     * already stopped behind them.
+     */
+    pullUp() {
+      if (world.cones || course !== world.loop) return;
+      let at = sim.dist + Math.max((sim.v * sim.v) / (2 * PULL_UP_DECEL) + 2, 3);
+      const d = wrap(at, course.len);
+      for (const [a, b] of course.corners) if (d > a - 2 && d < b + 5) at += b + 5 - d;
+      sim.target = at;
+    },
     configure(next: { cruise: number; driving: boolean }) {
       cruise = next.cruise;
       sim.pullOver = !next.driving;
     },
     /**
-     * Switch to `to` and plan the way onto it, but keep holding: the route redraws now, the car
-     * moves on escape(). `rerouteLoop` goes past the cones, so it plans a detour round them;
-     * `uturnLoop` turns round before them, so it needs none. Only from the part of the first leg
+     * Switch to a new route and plan the way onto it, but keep holding: the route redraws now,
+     * the car moves on escape(). The new route is `world.uturn` if `uturn`, otherwise the way
+     * out (`world.reroutes`) for the leg the car is stopped on. In Stalled, the way out goes past
+     * the cones, so it plans a detour round them; the U-turn turns round before them, so it
+     * needs none. Looping has no cones, so needs no detour either. Only from the part of the leg
      * the loops share (up to the corner, or up to the stop for the U-turn); anywhere else the car
      * keeps its course.
      */
-    reroute(to: Loop = rerouteLoop) {
+    reroute(uturn = false) {
+      if (course !== world.loop) return;
       const d = wrap(sim.dist, course.len);
-      const shared = to === uturnLoop ? loop.stopAt + 0.6 : loop.corners[0][0];
-      if (course !== loop || d > shared) return;
-      // Same spot on the new loop: the first leg is shared. Counting restarts on its first lap,
-      // so `dist` steps back here, while the car is standing still.
-      sim.dist = d;
+      let to: Loop;
+      let from: number;
+      if (uturn) {
+        if (!world.uturn || d > world.loop.stopAt + 0.6) return;
+        to = world.uturn;
+        from = d;
+      } else {
+        // The way out that starts on the leg the car stopped on. Stalled has only the one.
+        const { leg, start } = legOf(world.loop, d);
+        const option = world.reroutes[leg] ?? world.reroutes[0];
+        from = d - start;
+        if (from > option.to.corners[0][0]) return;
+        to = option.to;
+      }
+      // Same spot on the new loop: the leg is shared. Counting restarts on its first lap, so
+      // `dist` steps back here, while the car is standing still.
+      sim.dist = from;
       sim.served = -1;
+      if (sim.target !== null) sim.target = from;
       course = to;
       onCourse(course);
-      detour = to === uturnLoop ? null : nextStop(sim, course);
+      // Only the way past the cones needs a detour round them.
+      detour = to === world.uturn || !world.cones ? null : nextStop(sim, course);
       onDetour(detour);
       snapshot = live();
     },
+    driveToEnd,
     /** Release the hold at the stop ahead and drive around what's blocking it (or, on the
      *  U-turn loop, turn round before it). */
     escape() {
       const at = nextStop(sim, course);
       sim.served = at;
       sim.hold = 0;
-      detour = course === uturnLoop ? null : at;
+      detour = course === world.uturn || !world.cones ? null : at;
       onDetour(detour);
+      // Nothing to stop for any more without cones: the car only stopped to reroute.
+      if (!world.cones) sim.stops = false;
+      driveToEnd();
     },
     /** Advance one frame. Called by CabinMap.Viewport before any part reads the snapshot. */
     step(dt: number) {
@@ -280,6 +386,8 @@ export type CabinScreenRootProps = ComponentProps<"div"> & {
   onDrivingChange?: (driving: boolean) => void;
   /** Uncontrolled starting value for `driving`. */
   defaultDriving?: boolean;
+  /** Starting scenario, before the rider picks one on Start ride. */
+  defaultScenario?: RideScenario;
   /** Starting phase. "boarding" holds the car until startRide(). */
   defaultPhase?: RidePhase;
   /** Cruise speed, m/s. */
@@ -288,16 +396,28 @@ export type CabinScreenRootProps = ComponentProps<"div"> & {
 
 /**
  * Holds a run counter and remounts everything under it when `reset()` bumps it, so every part
- * (state, the drive sim, traffic, the camera) starts over from its defaults.
+ * (state, the drive sim, traffic, the camera) starts over from its defaults. The scenario lives
+ * here, above the remount, so the rider's pick survives a reset.
  */
-export function CabinScreenRoot(props: CabinScreenRootProps) {
+export function CabinScreenRoot({ defaultScenario = "stalled", ...props }: CabinScreenRootProps) {
   const [run, setRun] = useState(0);
   const reset = useCallback(() => setRun((n) => n + 1), []);
-  return <CabinScreenRun key={run} reset={reset} {...props} />;
+  const [scenario, setScenario] = useState<RideScenario>(defaultScenario);
+  return (
+    <CabinScreenRun
+      key={run}
+      reset={reset}
+      scenario={scenario}
+      setScenario={setScenario}
+      {...props}
+    />
+  );
 }
 
 function CabinScreenRun({
   reset,
+  scenario,
+  setScenario,
   driving: drivingProp,
   onDrivingChange,
   defaultDriving = true,
@@ -306,7 +426,11 @@ function CabinScreenRun({
   className,
   children,
   ...props
-}: CabinScreenRootProps & { reset: () => void }) {
+}: CabinScreenRootProps & {
+  reset: () => void;
+  scenario: RideScenario;
+  setScenario: (scenario: RideScenario) => void;
+}) {
   const [drivingState, setDrivingState] = useState(defaultDriving);
   const driving = drivingProp ?? drivingState;
   const [phase, setPhase] = useState<RidePhase>(defaultPhase);
@@ -334,21 +458,56 @@ function CabinScreenRun({
     setSpeedState(speedProp);
   }
 
+  const world = WORLD_BY_SCENARIO[scenario];
   const [motion, setMotion] = useState<Motion>("stopped");
   const [detour, setDetour] = useState<number | null>(null);
-  const [course, setCourse] = useState<Loop>(loop);
+  const [course, setCourse] = useState<Loop>(world.loop);
   const [delay, setDelay] = useState(0);
-  const [engine] = useState(() => createEngine(setMotion, setDetour, setCourse));
+  const [arriving, setArriving] = useState(false);
+  const [traffic, setTraffic] = useState<TrafficStage | null>(null);
+  // When the rider asked for another route, so the new one shows `world.reroutingMs` after that.
+  const reroutedAt = useRef(0);
+  const [engine] = useState(() => createEngine(world, setMotion, setDetour, setCourse));
+  // The rider picks the scenario while boarding; the car starts over on that world's loop.
+  useLayoutEffect(() => engine.setWorld(world), [engine, world]);
 
-  // Rerouting: work it out, then show the new route and wait for the rider to confirm it.
+  // Rerouting: `world.reroutingMs` after the rider asked, once the car is standing still (stuck at
+  // the cones already, or pulled up just ahead), show the new route and wait for them to confirm.
   useEffect(() => {
-    if (reroute !== "rerouting") return;
+    if (reroute !== "rerouting" || motion !== "stopped") return;
+    const wait = Math.max(0, reroutedAt.current + world.reroutingMs - Date.now());
     const t = setTimeout(() => {
       engine.reroute();
       setReroute("overview");
-    }, REROUTING_MS);
+    }, wait);
     return () => clearTimeout(t);
-  }, [reroute, engine]);
+  }, [reroute, motion, engine, world]);
+
+  // Rerouting scenario: notice the traffic once the car passes `detectAt`, then run the stages.
+  useEffect(() => {
+    const setup = world.heavyTraffic;
+    if (!setup || phase !== "riding" || traffic !== null) return;
+    const unsubscribe = engine.meta.subscribe(() => {
+      if (engine.meta.getSnapshot().dist >= setup.detectAt) setTraffic("rerouting");
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [world, phase, traffic, engine]);
+  useEffect(() => {
+    const setup = world.heavyTraffic;
+    if (!setup || traffic === null || traffic === "done") return;
+    const t = setTimeout(() => {
+      if (traffic === "rerouting") {
+        // Still on the shared street, so it switches on the move and drives to the end.
+        engine.reroute();
+        engine.driveToEnd();
+        setDelay((d) => d - setup.savedMinutes);
+        setTraffic("found");
+      } else setTraffic(traffic === "found" ? "switched" : "done");
+    }, TRAFFIC_MS[traffic]);
+    return () => clearTimeout(t);
+  }, [world, traffic, engine]);
 
   // After "Safe path confirmed", the car drives around the obstruction and diagnosis ends.
   useEffect(() => {
@@ -385,17 +544,23 @@ function CabinScreenRun({
 
   const actions = useMemo<CabinScreenActions>(
     () => ({
+      setScenario,
       startRide: () => setPhase("riding"),
       pullOver: () => setDriving(false),
       resume: () => setDriving(true),
       setSpeed: (n) => setSpeedState(Math.max(0, n)),
       startDiagnosis: () => setDiagnosis("scanning"),
       endDiagnosis: () => setDiagnosis(null),
-      startReroute: () => setReroute("rerouting"),
+      startReroute: () => {
+        reroutedAt.current = Date.now();
+        engine.pullUp();
+        setReroute("rerouting");
+      },
       confirmReroute: () => {
         const added = ROUTE_DELAY_MIN.get(engine.course()) ?? 0;
         setDelay((d) => d + added);
         engine.escape();
+        setArriving(true);
         setReroute(null);
       },
       startSupport: () => {
@@ -405,34 +570,54 @@ function CabinScreenRun({
       },
       endSupport: () => setSupport(null),
       proceedWithUturn: () => {
+        if (!world.uturn) return;
         setSupport(null);
         setDiagnosis(null);
-        engine.reroute(uturnLoop);
+        engine.reroute(true);
         setReroute("overview");
       },
       reset,
     }),
-    [setDriving, engine, reset],
+    [setScenario, setDriving, engine, reset, world],
   );
 
   const value = useMemo<CabinScreenContextValue>(
     () => ({
-      state: { phase, diagnosis, reroute, support, course, detour, driving, motion, speed, delay },
+      state: {
+        scenario,
+        world,
+        phase,
+        diagnosis,
+        reroute,
+        support,
+        traffic,
+        course,
+        detour,
+        driving,
+        motion,
+        speed,
+        delay: world.startDelay + delay,
+        arriving,
+      },
       actions,
       meta: engine.meta,
       anchors,
     }),
     [
+      scenario,
+      world,
       phase,
       diagnosis,
       reroute,
       support,
+      traffic,
       course,
       detour,
       driving,
       motion,
       speed,
       delay,
+      arriving,
       actions,
       engine,
       anchors,
