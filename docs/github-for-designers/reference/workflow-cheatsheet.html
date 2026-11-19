@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PR Workflow Cheat Sheet</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Reference · GitHub for designers</p>
+      <h1>PR workflow cheat sheet</h1>
+      <p class="lede">The whole loop on one page. Print it and keep it by your desk.</p>
+
+      <h2>Author</h2>
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>Step</th>
+            <th>Command or click</th>
+          </tr>
+          <tr>
+            <td>1. Latest main</td>
+            <td>
+              <code>git switch main</code> · <code>git pull</code> · <code>pnpm install</code>
+            </td>
+          </tr>
+          <tr>
+            <td>2. Branch</td>
+            <td><code>git switch -c design/short-description</code></td>
+          </tr>
+          <tr>
+            <td>3. Change</td>
+            <td>
+              <code>pnpm dev</code> → localhost:3000. Tokens from <code>tokens.css</code>,
+              components from HeroUI.
+            </td>
+          </tr>
+          <tr>
+            <td>4. Check</td>
+            <td><code>pnpm format &amp;&amp; pnpm lint &amp;&amp; pnpm typecheck</code></td>
+          </tr>
+          <tr>
+            <td>5. Commit</td>
+            <td>
+              <code>git status</code> · <code>git add -A</code> ·
+              <code>git commit -m "Say what it does"</code>
+            </td>
+          </tr>
+          <tr>
+            <td>6. Push + PR</td>
+            <td>
+              <code>git push -u origin design/short-description</code> ·
+              <code>gh pr create --web</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Fix feedback</td>
+            <td>Edit → steps 4–5 → <code>git push</code></td>
+          </tr>
+          <tr>
+            <td>7. Merge</td>
+            <td>
+              <strong>Squash and merge</strong> → <strong>Delete branch</strong> (after one
+              approval)
+            </td>
+          </tr>
+          <tr>
+            <td>8. Clean up</td>
+            <td>
+              <code>git switch main</code> · <code>git pull</code> ·
+              <code>git branch -D design/short-description</code>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <h2>Reviewer</h2>
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>Do</th>
+            <th>Where</th>
+          </tr>
+          <tr>
+            <td>Try it</td>
+            <td>
+              Vercel bot's <strong>Preview</strong> link on the PR, or
+              <code>gh pr checkout &lt;number&gt;</code> then <code>pnpm dev</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Comment on a line</td>
+            <td>
+              <strong>Files changed</strong> → hover line → blue <strong>+</strong> →
+              <strong>Start a review</strong>
+            </td>
+          </tr>
+          <tr>
+            <td>Propose an exact edit</td>
+            <td>Suggestion icon in the comment box</td>
+          </tr>
+          <tr>
+            <td>Finish</td>
+            <td>
+              <strong>Review changes</strong> → Comment / Approve / Request changes →
+              <strong>Submit review</strong>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <h3>What designers look for in review</h3>
+      <ul>
+        <li>Does the preview match the intent in the PR description and screenshots?</li>
+        <li>Are values tokens from <code>tokens.css</code>, not raw hex or pixel numbers?</li>
+        <li>Does it hold up in each scenario it touches (Stalled, Looping, Rerouting)?</li>
+        <li>Is the PR one change? If not, ask to split it.</li>
+      </ul>
+
+      <h2>Oops</h2>
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>Situation</th>
+            <th>Fix</th>
+          </tr>
+          <tr>
+            <td>Which branch am I on?</td>
+            <td><code>git status</code> (first line)</td>
+          </tr>
+          <tr>
+            <td>Made changes on main by mistake (not committed)</td>
+            <td><code>git switch -c design/new-name</code>: your edits come with you</td>
+          </tr>
+          <tr>
+            <td>Want to throw away uncommitted edits to a file</td>
+            <td><code>git restore path/to/file</code> (can't be undone)</td>
+          </tr>
+          <tr>
+            <td>Typo in the last commit message, not pushed yet</td>
+            <td><code>git commit --amend -m "Better message"</code></td>
+          </tr>
+          <tr>
+            <td><code>git pull</code> says "conflict"</td>
+            <td>Stop and ask an engineer or Claude. Don't force anything.</td>
+          </tr>
+        </table>
+      </div>
+
+      <p class="source">
+        Sources:
+        <a href="https://docs.github.com/en/get-started/using-github/github-flow">GitHub flow</a> ·
+        <a
+          href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request"
+          >Reviewing proposed changes</a
+        >
+        ·
+        <a
+          href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges"
+          >About merges</a
+        >
+        · <a href="https://cli.github.com/manual/gh_pr">gh pr manual</a>
+      </p>
+
+      <nav class="footer">
+        <a href="../lessons/0001-your-first-pull-request.html">Lesson 0001</a>
+        <a href="glossary.html">Glossary</a>
+      </nav>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your First Pull Request</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Lesson 0001 · GitHub for designers</p>
+      <h1>Your first pull request on project-waymo</h1>
+      <p class="lede">
+        Get the latest code, change one thing, and get it merged into <code>main</code> after a
+        teammate reviews it.
+      </p>
+
+      <p>
+        Every change to the cabin prototype follows the same loop, called
+        <a href="https://docs.github.com/en/get-started/using-github/github-flow">GitHub flow</a>.
+        You never edit <code>main</code> directly. You work on a <em>branch</em> (your own copy),
+        open a <em>pull request</em> (PR) asking for it to be merged, and a teammate reviews it
+        first. New words are defined in the <a href="../reference/glossary.html">glossary</a>.
+      </p>
+
+      <div class="box">
+        <h3>One-time setup</h3>
+        <p>
+          You need git, <a href="https://pnpm.io/installation">pnpm</a> and the
+          <a href="https://cli.github.com/">GitHub CLI</a> installed, and collaborator access to the
+          repo. Then:
+        </p>
+        <pre><code>gh auth login                                  <span class="c"># sign in to GitHub once</span>
+gh repo clone tnamdevnote/project-waymo
+cd project-waymo</code></pre>
+      </div>
+
+      <h2>The loop</h2>
+      <p>The example below tightens the spacing on the arrival pill. Swap in your own change.</p>
+
+      <ol class="steps">
+        <li>
+          <strong>Get the latest <code>main</code></strong>
+          Other people have merged work since you last looked. Start from their latest version.
+          <pre><code>git switch main
+git pull
+pnpm install                                   <span class="c"># picks up any new packages</span></code></pre>
+        </li>
+
+        <li>
+          <strong>Start a branch</strong> Name it <code>design/</code> plus a few words about the
+          change, so anyone can tell what it is from the name.
+          <pre><code>git switch -c design/arrival-pill-spacing</code></pre>
+          <p class="note">
+            One branch per change. If you also want to reword the Pull over sheet, that goes on its
+            own branch and its own PR. Small PRs are faster to review and easier to undo (<a
+              href="https://docs.github.com/en/get-started/using-github/github-flow"
+              >GitHub flow</a
+            >).
+          </p>
+        </li>
+
+        <li>
+          <strong>Make the change and look at it</strong>
+          <pre><code>pnpm dev                                       <span class="c"># open http://localhost:3000</span></code></pre>
+          Read <code>DESIGN.md</code> first. Use only the tokens in
+          <code>src/app/tokens.css</code> and components from <code>@heroui/react</code>.
+        </li>
+
+        <li>
+          <strong>Check it</strong>
+          These three commands fix formatting and catch mistakes before anyone else sees them.
+          <pre><code>pnpm format &amp;&amp; pnpm lint &amp;&amp; pnpm typecheck</code></pre>
+        </li>
+
+        <li>
+          <strong>Commit</strong>
+          A commit is a saved snapshot with a message. Check what changed, stage it, then commit.
+          <pre><code>git status                                     <span class="c"># which files changed?</span>
+git add src/components/features/cabin-screen/CabinScreenRoot.tsx
+                                               <span class="c"># or: git add -A for everything</span>
+git commit -m "Tighten spacing on the arrival pill"</code></pre>
+          <p class="note">
+            Write the message as what the change does: "Tighten spacing on the arrival pill", not
+            "fixes" or "wip".
+          </p>
+        </li>
+
+        <li>
+          <strong>Push and open the pull request</strong>
+          <pre><code>git push -u origin design/arrival-pill-spacing
+gh pr create --web                             <span class="c"># opens the PR form in your browser</span></code></pre>
+          In the description, say <em>what</em> changed and <em>why</em>, add before/after
+          screenshots, and say how to see it ("start the Stalled scenario"). A minute or two later
+          the Vercel bot comments on the PR with a <strong>preview link</strong>: your branch,
+          running on the web, for reviewers to click.
+        </li>
+
+        <li>
+          <strong>Review</strong> (the reviewer's side) Open the Vercel preview and try the change.
+          Then go to the <strong>Files changed</strong> tab:
+          <ul>
+            <li>
+              Hover a line, click the blue <strong>+</strong>, and comment. Click
+              <strong>Start a review</strong> so your comments go out together.
+            </li>
+            <li>
+              To propose an exact edit (a typo, a token name), click the <em>suggestion</em> icon in
+              the comment box. The author can commit it with one click.
+            </li>
+            <li>
+              Finish with <strong>Review changes</strong> and pick <em>Comment</em>,
+              <em>Approve</em>, or <em>Request changes</em>.
+            </li>
+          </ul>
+          <p class="source">
+            Source:
+            <a
+              href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request"
+              >GitHub Docs, Reviewing proposed changes</a
+            >
+          </p>
+          The author answers feedback by committing and pushing again on the same branch (repeat
+          steps 4–6, skipping <code>gh pr create</code>). The PR updates by itself.
+        </li>
+
+        <li>
+          <strong>Merge and clean up</strong> Once it's approved, click
+          <strong>Squash and merge</strong> on the PR. This turns all the branch's commits into a
+          single commit on <code>main</code> (<a
+            href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges"
+            >GitHub Docs, About merges</a
+          >). Then click <strong>Delete branch</strong>, and on your machine:
+          <pre><code>git switch main
+git pull
+git branch -D design/arrival-pill-spacing      <span class="c"># capital D: squashed branches need it</span></code></pre>
+        </li>
+      </ol>
+
+      <div class="box">
+        <p>
+          <strong>House rule:</strong> GitHub doesn't currently stop anyone merging without a review
+          on this repo. We still wait for one approval before merging.
+        </p>
+      </div>
+
+      <p class="note">
+        Using Claude Code? You can ask it to "create a branch, commit, and open a PR" and it will
+        run these commands. Knowing the loop still matters, so you can tell when something has gone
+        wrong.
+      </p>
+
+      <hr />
+
+      <h2>Check yourself</h2>
+      <p>Try these from memory before you scroll back up.</p>
+
+      <div
+        class="order"
+        data-why="Pull, branch, change, check, commit, push and open the PR, review, merge."
+      >
+        <p class="q">Click the steps in the right order.</p>
+        <ul>
+          <li data-pos="4">Commit with a clear message</li>
+          <li data-pos="1">Create a <code>design/…</code> branch</li>
+          <li data-pos="6">Get an approval on the review</li>
+          <li data-pos="0">Pull the latest <code>main</code></li>
+          <li data-pos="7">Squash and merge, delete branch</li>
+          <li data-pos="3">Run format, lint and typecheck</li>
+          <li data-pos="5">Push and open the pull request</li>
+          <li data-pos="2">Make the change, check it locally</li>
+        </ul>
+      </div>
+
+      <div
+        class="quiz"
+        data-answer="1"
+        data-why="A branch is your own copy. main keeps working for everyone else until your PR is merged."
+      >
+        <p class="q">Why work on a branch instead of on <code>main</code>?</p>
+        <button>Makes the dev server run faster</button>
+        <button>Keeps main safe while you work</button>
+        <button>Lets you skip running pnpm install</button>
+      </div>
+
+      <div
+        class="quiz"
+        data-answer="2"
+        data-why="These three are the repo's pre-push checks. They fix formatting and catch errors before a reviewer has to."
+      >
+        <p class="q">What do you run right before committing?</p>
+        <button>git pull, then git merge</button>
+        <button>pnpm build, then pnpm start</button>
+        <button>pnpm format, lint, then typecheck</button>
+      </div>
+
+      <div
+        class="quiz"
+        data-answer="0"
+        data-why="A suggestion lets the author accept your exact edit with one click."
+      >
+        <p class="q">
+          You spot a typo in a PR's button label. What's the quickest fix for the author?
+        </p>
+        <button>Add a suggested change to it</button>
+        <button>Push the fix straight to main</button>
+        <button>Close the PR and reopen it</button>
+      </div>
+
+      <div
+        class="quiz"
+        data-answer="1"
+        data-why="Vercel builds every PR branch and comments with a link to it, so reviewers don't need to run anything."
+      >
+        <p class="q">How does a reviewer try the change without running it locally?</p>
+        <button>The Files changed tab diff</button>
+        <button>The Vercel bot's preview link</button>
+        <button>The commit list on main</button>
+      </div>
+
+      <hr />
+
+      <h2>Your win</h2>
+      <p>
+        Open one real PR this week: a copy tweak or a spacing fix is plenty. Ask a teammate to
+        review it, and review one of theirs.
+      </p>
+
+      <div class="box">
+        <p>
+          <strong>Read next:</strong>
+          <a href="https://docs.github.com/en/get-started/using-github/github-flow"
+            >GitHub Docs: "GitHub flow"</a
+          >, a five-minute read on the loop you just learned. Prefer clicking to typing?
+          <a href="https://docs.github.com/en/get-started/start-your-journey/hello-world"
+            >"Hello World"</a
+          >
+          does the same loop entirely in the browser.
+        </p>
+        <p>
+          <strong>Stuck or curious?</strong> Ask Claude anything: "what does
+          <code>git switch -c</code> actually do?", "I pushed to the wrong branch", "what's a merge
+          conflict?" Your teacher is right there in the chat.
+        </p>
+      </div>
+
+      <nav class="footer">
+        <a href="../reference/workflow-cheatsheet.html">Cheat sheet</a>
+        <a href="../reference/glossary.html">Glossary</a>
+      </nav>
+    </main>
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

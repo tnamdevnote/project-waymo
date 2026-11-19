@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Git Glossary</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Reference · GitHub for designers</p>
+      <h1>Glossary</h1>
+      <p class="lede">The words every lesson uses, and what they mean on this repo.</p>
+
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>Term</th>
+            <th>Meaning</th>
+          </tr>
+          <tr>
+            <td><strong>Repository (repo)</strong></td>
+            <td>
+              The project folder plus its full history. Ours is
+              <code>tnamdevnote/project-waymo</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Clone</strong></td>
+            <td>Download a repo to your machine. Done once.</td>
+          </tr>
+          <tr>
+            <td>
+              <strong><code>main</code></strong>
+            </td>
+            <td>
+              The shared branch everyone builds from. Only changes merged through a PR land here.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Branch</strong></td>
+            <td>
+              Your own line of work, split off from <code>main</code>. Changes here don't affect
+              anyone until merged.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Pull</strong></td>
+            <td>Bring other people's new commits down to your machine.</td>
+          </tr>
+          <tr>
+            <td><strong>Commit</strong></td>
+            <td>A saved snapshot of your changes with a message describing them.</td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Stage (<code>git add</code>)</strong>
+            </td>
+            <td>Choose which changed files go into the next commit.</td>
+          </tr>
+          <tr>
+            <td><strong>Push</strong></td>
+            <td>Send your branch's commits up to GitHub.</td>
+          </tr>
+          <tr>
+            <td><strong>Pull request (PR)</strong></td>
+            <td>
+              A request to merge your branch into <code>main</code>, with a page for discussion and
+              review.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Diff</strong></td>
+            <td>
+              The line-by-line view of what changed. On a PR it's the
+              <strong>Files changed</strong> tab.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Review</strong></td>
+            <td>
+              A teammate's feedback on a PR, submitted as Comment, Approve, or Request changes.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Suggested change</strong></td>
+            <td>A review comment with an exact edit the author can commit in one click.</td>
+          </tr>
+          <tr>
+            <td><strong>Preview deployment</strong></td>
+            <td>
+              A live web copy of a PR's branch, built by Vercel and linked in a bot comment on the
+              PR.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Merge</strong></td>
+            <td>Bring a branch's changes into <code>main</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Squash and merge</strong></td>
+            <td>Merge a PR as one single commit on <code>main</code>. Our default.</td>
+          </tr>
+          <tr>
+            <td><strong>Merge conflict</strong></td>
+            <td>
+              Two branches changed the same lines, and git needs a person to choose. Ask for help.
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p class="source">
+        Definitions follow
+        <a href="https://docs.github.com/en/get-started/learning-about-github/github-glossary"
+          >GitHub's own glossary</a
+        >.
+      </p>
+
+      <nav class="footer">
+        <a href="../lessons/0001-your-first-pull-request.html">Lesson 0001</a>
+        <a href="workflow-cheatsheet.html">Cheat sheet</a>
+      </nav>
+    </main>
+  </body>
+</html>
