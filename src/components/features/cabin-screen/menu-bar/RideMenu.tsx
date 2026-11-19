@@ -8,16 +8,15 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
 import { type RideScenario, useCabinScreen } from "../CabinScreenRoot";
 import { PullOverSheet } from "../pull-over/PullOverSheet";
-import { type RideIssue, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
+import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 
 /**
- * What "Report ride issue" offers in each demo scenario. Stalled: the car is stopped at the
- * cones, so "seems lost" doesn't apply. Looping: it keeps circling with nothing in the way, so
- * "stuck" doesn't. Rerouting: it finds its own way round traffic.
+ * What "Report ride issue" offers in each demo scenario. Stalled and Looping offer the full set
+ * so the rider picks what fits. Rerouting: it finds its own way round traffic.
  */
 const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {
-  stalled: ["Waymo is stuck", "Something else"],
-  looping: ["Waymo seems lost", "Something else"],
+  stalled: rideIssues,
+  looping: rideIssues,
   // The car reroutes round traffic on its own; nothing in its way to report.
   rerouting: ["Something else"],
 };
