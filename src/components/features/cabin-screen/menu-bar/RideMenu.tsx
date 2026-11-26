@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
 import { type RideScenario, useCabinScreen } from "../CabinScreenRoot";
+import { useStoppingForTruck } from "../map/useStoppedAtTruck";
 import { PullOverSheet } from "../pull-over/PullOverSheet";
 import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 
@@ -40,7 +41,8 @@ function MusicIcon() {
   );
 }
 
-function QuestionIcon() {
+/** A shield with an exclamation mark, for Get help (Figma node 780:389). */
+function ShieldAlertIcon() {
   return (
     <svg
       aria-hidden
@@ -52,9 +54,9 @@ function QuestionIcon() {
       strokeLinejoin="round"
       className="size-8"
     >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
-      <path d="M12 17h.01" />
+      <path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z" />
+      <path d="M12 8v4" />
+      <path d="M12 16h.01" />
     </svg>
   );
 }
@@ -140,9 +142,18 @@ export function RideMenu({
 }: RideMenuProps) {
   const { state, actions } = useCabinScreen();
   const hidden = state.phase !== "riding";
-  // While the car diagnoses a stall or reroutes, the bar keeps only what the rider might need now.
+  // While the car diagnoses a stall, takes a path suggestion or reroutes, the bar keeps only what
+  // the rider might need now.
   const onCall = state.support !== null;
-  const diagnosing = state.diagnosis !== null || state.reroute !== null || onCall;
+  const diagnosing =
+    state.diagnosis !== null || state.pick !== null || state.reroute !== null || onCall;
+  // Behind the fire truck, not yet round it: "Waymo is stuck" asks the rider to help pick a path.
+  const canPickPath =
+    state.world.blocked && state.course === state.world.loop && state.detour === null;
+  // Stopping there on its own (not pulled over): ring Troubleshoot so the rider finds it, at the
+  // same moment as the car's question mark.
+  const stoppingForTruck = useStoppingForTruck();
+  const stuck = canPickPath && stoppingForTruck && state.driving;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pullOverOpen, setPullOverOpen] = useState(false);
   // "Call support", "Something else" and "None of these" in the sheet, and the bar's own Support
@@ -237,23 +248,30 @@ export function RideMenu({
           <MenuBar.Item onPress={callSupport}>
             <HeadsetIcon />
             {/* Per the Figma frames: "Call support" while scanning or rerouting, "Support" once detected. */}
-            {state.diagnosis === "scanning" || state.reroute ? "Call support" : "Support"}
+            {state.diagnosis === "scanning" || state.pick || state.reroute
+              ? "Call support"
+              : "Support"}
           </MenuBar.Item>
         )}
         {/* The item is the sheet's trigger: it opens the sheet and gets focus back on close. The
             sheet stays mounted after the item is gone, so it can still slide out. */}
         <BottomSheet isOpen={sheetOpen} onOpenChange={setSheetOpen}>
           {!diagnosing && (
-            <MenuBar.Item onPress={onTroubleshoot}>
-              <QuestionIcon />
-              Troubleshoot
+            <MenuBar.Item className={stuck ? "stuck-ring" : undefined} onPress={onTroubleshoot}>
+              <ShieldAlertIcon />
+              Get help
             </MenuBar.Item>
           )}
           <TroubleshootSheet
             issues={ISSUES_BY_SCENARIO[state.scenario]}
             onCallSupport={callSupport}
+            skipStuckReasons={canPickPath}
             onReportIssue={(issue) => {
               if (issue === "Something else") callSupport();
+              if (issue === "Waymo is stuck" && canPickPath) {
+                setSheetOpen(false);
+                actions.startPathPick();
+              }
             }}
             onStuckReason={(reason) => {
               if (reason === "None of these") return callSupport();

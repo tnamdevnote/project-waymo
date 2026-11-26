@@ -32,7 +32,7 @@ const UTURN_NS_LABEL_Z = 110;
 const GAP = 48;
 const BOTTOM = 176;
 
-/** The blocked way, drawn through the cones and the right turn, plus this much. */
+/** The blocked way, drawn past the fire truck and through the right turn, plus this much. */
 const BLOCKED_PAST_TURN = 30;
 
 export function RerouteMap({ shown }: { shown: boolean }) {

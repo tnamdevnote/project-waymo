@@ -1,5 +1,5 @@
-// The way around the lane closure, once a remote agent has confirmed a safe path. The car eases
-// one lane left past the cones, makes its usual right turn from that lane, then eases back into
+// The way around the parked fire truck, once Waymo has confirmed it's safe. The car eases one
+// lane left (still northbound) past the truck, makes its usual right turn from that lane, then eases back into
 // its own lane on the next street. Expressed as a sideways shift on top of the loop, so the sim,
 // route and camera keep using one path.
 import * as THREE from "three";
@@ -7,9 +7,9 @@ import { type Loop, loop, wrap } from "./world";
 
 /** One lane to the left, meters. */
 const SHIFT = 3.5;
-/** Meters driven from the stop while moving over. Short: the cones are 4.2m ahead of the nose. */
+/** Meters driven from the stop while moving over. Short: the truck is 4.2m ahead of the nose. */
 const OUT = 6;
-/** Held over until the turn begins, when the whole car is past the cones. On `rerouteLoop` the
+/** Held over until the turn begins, by which point the car is alongside the truck. On `rerouteLoop` the
  *  car goes straight on instead of turning there; same distance, since the first leg is shared. */
 const HOLD = loop.corners[0][0] - loop.stopAt;
 /** Meters to ease back into the car's own lane, through the turn and onto the next street. */

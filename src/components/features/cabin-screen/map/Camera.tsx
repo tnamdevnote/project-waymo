@@ -26,6 +26,9 @@ function useReducedMotion() {
   );
 }
 
+/** The closer view while the rider picks a path, meters, as for the props below. */
+const PICK_VIEW = { distance: 14, height: 28, lookAhead: 7 };
+
 export function Camera({
   distance = 15,
   height = 40,
@@ -50,8 +53,12 @@ export function Camera({
   splitOffset?: number;
 }) {
   const { meta, state } = useCabinScreen();
-  // Any split-view panel over the left half: Diagnosis, Reroute (before its overhead map) or Support.
-  const split = state.diagnosis !== null || state.reroute === "rerouting" || state.support !== null;
+  // While the rider picks a path, come in closer so the ways past the truck read clearly.
+  const picking = state.pick !== null;
+  // Any split-view panel over the left half: PathPick, Diagnosis, Reroute (before its overhead map)
+  // or Support.
+  const split =
+    picking || state.diagnosis !== null || state.reroute === "rerouting" || state.support !== null;
   const { course } = state;
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const reduced = useReducedMotion();
@@ -77,8 +84,9 @@ export function Camera({
       .at(live.dist + 6, rig.dir)
       .sub(course.at(live.dist - 6, rig.tmp))
       .normalize();
-    rig.want.copy(rig.ego).addScaledVector(rig.dir, -distance).setY(height);
-    rig.aim.copy(rig.ego).addScaledVector(rig.dir, lookAhead);
+    const close = picking ? PICK_VIEW : { distance, height, lookAhead };
+    rig.want.copy(rig.ego).addScaledVector(rig.dir, -close.distance).setY(close.height);
+    rig.aim.copy(rig.ego).addScaledVector(rig.dir, close.lookAhead);
     if (split && splitOffset !== 0) {
       // Truck left by however far `splitOffset` of the half-width is at the car's depth.
       // `dir` is level, so the view axis is (aim - want) and the car's depth is along it.

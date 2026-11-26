@@ -63,6 +63,27 @@
   }
 }
 
+/* Troubleshoot while the car is stuck: a 4px brand gradient ring just inside the pill (Figma
+   node 780:389). A user-approved exception to DESIGN.md: it uses the brand swatches directly,
+   green included. A mask cuts the middle out, so the button's own fill and focus ring show. */
+.stuck-ring {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 4px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--waymo-green), var(--waymo-blue));
+    mask:
+      linear-gradient(black 0 0) content-box,
+      linear-gradient(black 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
 /* Hold for 911: the gauge fills across the tile, linearly, over the full hold (HOLD_MS in
    TroubleshootSheet.tsx), so its edge tells the rider how long is left. Letting go drains it
    fast; once the call goes out it stays full. */

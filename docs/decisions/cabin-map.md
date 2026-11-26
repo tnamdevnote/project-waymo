@@ -28,3 +28,7 @@ Restyled from a reference render of the car stopped behind cones at an intersect
 - Route: unchanged from Chase (tried a white-outlined green with a rounded end at the cones; reverted)
 - Double center lines in `--warning` (road yellow); blue bollards on some sidewalk corners
 - Other cars now drive every road in both directions. One signal cycle runs at every intersection (11s north–south green, 3s all red, 11s east–west green, 3s all red). Cars queue at the stop line and keep 2.5m apart, so no two cars ever overlap. The car's own loop lanes stay empty
+
+## Stalled: parked fire truck
+
+The cones are gone. The car stops behind a fire truck parked at the right curb that juts into its lane (`FIRE_TRUCK` in `map/world.ts`, drawn by `CabinMap.FireTruck`). "Waymo is stuck" opens `CabinScreen.PathPick`: the rider taps Go around or U-turn, Waymo checks for 5 seconds (simulated, always approves) with Cancel. Go around drives straight off. A U-turn is a new route, so the reroute overview asks the rider to confirm it; after 15 seconds unconfirmed (or on Call support) the car stays put on its old route and Ride Support is called. Going around uses the other northbound lane, so it never crosses into oncoming traffic.

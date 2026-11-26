@@ -5,8 +5,8 @@ import { type Loop, wrap } from "./map/world";
 
 const TURN_SPEED = 4.5; // m/s through corners
 const DECEL = 2.5; // m/s² used to plan braking
-// Seconds held at the stop before driving on. The stop is a lane closure the car can't get
-// past, so it holds for good: the rider is meant to find it stuck and report it.
+// Seconds held at the stop before driving on. The stop is behind a parked fire truck the car
+// isn't sure it can pass, so it holds for good: the rider is meant to find it stuck and report it.
 const STOP_HOLD = Infinity;
 
 export type Motion = "driving" | "stopping" | "stopped";

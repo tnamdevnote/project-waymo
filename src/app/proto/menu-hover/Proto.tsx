@@ -266,7 +266,7 @@ export function MenuHoverProto({ searchParams }: { searchParams: Promise<{ v?: s
       <CabinScreen.Root defaultPhase="riding" className="size-full">
         <CabinMap.Viewport>
           <CabinMap.City />
-          <CabinMap.Cones />
+          <CabinMap.FireTruck />
           <CabinMap.Traffic />
           <CabinMap.Route />
           <CabinMap.Vehicle />

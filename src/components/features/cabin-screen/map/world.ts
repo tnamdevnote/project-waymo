@@ -46,7 +46,7 @@ export type Loop = {
   len: number;
   at: (d: number, out: THREE.Vector3) => THREE.Vector3;
   corners: [number, number][];
-  /** Route distance where the car stops behind the cones, and stays: it's stuck. */
+  /** Route distance where the car stops behind the fire truck, and stays: it's stuck. */
   stopAt: number;
 };
 
@@ -55,12 +55,11 @@ type Block = { west: number; east: number; north: number; south: number };
 
 /**
  * The Stalled loop round the block `north` of Pine St. `north` is the cross road the loop turns
- * right onto: -40 for one block, -140 for two. The car stops behind the cones on its first leg.
+ * right onto: -40 for one block, -140 for two. The car stops behind the fire truck on its first
+ * leg.
  */
 export function buildLoop(north = -40): Loop {
-  // Stuck behind the lane closure: the car's nose sits CONE_GAP short of the cone row.
-  const stopZ = CONE_ROW_Z + CONE_GAP + NOSE_AHEAD;
-  return blockLoop({ west: 0, east: 100, north, south: 60 }, stopZ);
+  return blockLoop({ west: 0, east: 100, north, south: 60 }, TRUCK_STOP_Z);
 }
 
 /**
@@ -134,8 +133,8 @@ function measure(pts: [number, number][], marks: number[], stopAt: number): Loop
 
 /**
  * The U-turn the car makes after a Ride Support agent sends it back the way it came. Same start
- * and first leg as `loop`, up to the stop behind the cones. There it U-turns into the inner
- * southbound lane, tight enough to stay clear of the cones, and heads back south. To close the
+ * and first leg as `loop`, up to the stop behind the fire truck. There it U-turns into the inner
+ * southbound lane, tight enough to stay clear of the fire truck, and heads back south. To close the
  * loop for the sim it then goes left round the far block (Lake St, Elm St, Cedar St) and turns
  * right back onto its first leg, all well off screen.
  */
@@ -150,7 +149,7 @@ function buildUturnLoop(): Loop {
     }
     marks.push(pts.length - 1);
   };
-  const stopZ = CONE_ROW_Z + CONE_GAP + NOSE_AHEAD;
+  const stopZ = TRUCK_STOP_Z;
   const R = 6;
   // From the right northbound lane (x 5.25) to the inner southbound one (x -1.75).
   arc(1.75, stopZ, 3.5, 0, -Math.PI);
@@ -164,25 +163,22 @@ function buildUturnLoop(): Loop {
   return measure(pts, marks, 50.75 - stopZ);
 }
 
-/* ---------- Lane closure ahead of the car's first stop ---------- */
+/* ---------- The parked fire truck at the car's first stop ---------- */
 
 /** Meters from the car's center to its front bumper (map/Vehicle.tsx: 2.35 m × LENGTH). */
 export const NOSE_AHEAD = 2.16;
-/** Meters between the stopped car's nose and the cone row. */
-export const CONE_GAP = 4.2;
-/** The cone row across the car's lane, 2.8m short of the crosswalk at z = -30. */
-const CONE_ROW_Z = -40 + ROAD_HALF + WALK + 2.8;
+/** Meters between the stopped car's nose and the back of the fire truck. */
+const TRUCK_GAP = 4.2;
 
-/** Cone footprints (x, z), all in the car's northbound lane on the x = 0 road. */
-export const CONES: [number, number][] = [
-  [3.9, CONE_ROW_Z],
-  [4.75, CONE_ROW_Z],
-  [5.6, CONE_ROW_Z],
-  [6.45, CONE_ROW_Z],
-  [3.75, CONE_ROW_Z - 3.6],
-  [3.6, -58],
-  [3.6, -64],
-];
+/**
+ * A fire truck parked at the right curb, facing north like the car, short of the crosswalk. It
+ * juts about 0.8m into the car's lane (x 4.3 to 6.2 under the car), so the car is partly blocked,
+ * not boxed in: the next northbound lane is free.
+ */
+export const FIRE_TRUCK = { x: 6.65, z: -25.2, length: 8.4, width: 2.5 };
+
+/** Where the car's center halts behind the truck. */
+const TRUCK_STOP_Z = FIRE_TRUCK.z + FIRE_TRUCK.length / 2 + TRUCK_GAP + NOSE_AHEAD;
 
 /* ---------- Static city ---------- */
 
@@ -380,7 +376,7 @@ const STALL_TRAFFIC: Lane[] = [
     "z",
     ROADS_X,
     NS_LANES,
-    // The car's own lanes, plus the lane it borrows to get round the cones (map/detour.ts) and
+    // The car's own lanes, plus the lane it borrows to get round the fire truck (map/detour.ts) and
     // the U-turn loop's lanes (`uturnLoop`).
     (c, off) =>
       (c === 0 && (off === 5.25 || off === 1.75 || off === -1.75)) ||
@@ -502,11 +498,11 @@ export const loop = buildLoop();
  * The way the car goes after the rider asks it to try another path ("Waymo seems lost"):
  * straight on at the corner where `loop` turns right, round the block to the north, and back
  * down the same east street. Starts at the same point and runs the same first leg, so a car
- * on that leg is at the same distance on both, and the stop behind the cones is the same.
+ * on that leg is at the same distance on both, and the stop behind the fire truck is the same.
  */
 export const rerouteLoop = buildLoop(-140);
 
-/** The way back after Ride Support sends the car round: a U-turn at the cones. See buildUturnLoop. */
+/** The way back after Ride Support sends the car round: a U-turn behind the fire truck. See buildUturnLoop. */
 export const uturnLoop = buildUturnLoop();
 
 /** Meters past where the new route meets the old one again that it runs on to: its end, where
@@ -575,7 +571,7 @@ const LOOP_REROUTES: RerouteOption[] = (
 
 /**
  * Everything the map and the drive sim need for one demo scenario: the streets, the car's loop,
- * where it goes when it reroutes, and whether there's a lane closure to get stuck at.
+ * where it goes when it reroutes, and whether there's a fire truck to get stuck behind.
  */
 export type World = {
   grid: Grid;
@@ -593,8 +589,8 @@ export type World = {
   uturn: Loop | null;
   /** Route distance on `uturn` where the U-turn route ends, as for `RerouteOption.end`. */
   uturnEnd: number;
-  /** Cones across the first leg. The car is stuck behind them from the start, for good. */
-  cones: boolean;
+  /** A fire truck partly blocks the first leg. The car stops behind it and stays: it's stuck. */
+  blocked: boolean;
   /** How long "Trying another route" shows before the new route, from the rider's tap. */
   reroutingMs: number;
   /** Street names for the reroute map, one per road in the grid. The 3D map has none. */
@@ -628,7 +624,7 @@ export type TrafficSetup = {
   ewLabelX: number;
 };
 
-/** Stalled: stuck behind a lane closure on Comal St. */
+/** Stalled: stuck behind a parked fire truck on Comal St. */
 export const STALL_WORLD: World = {
   grid: STALL_GRID,
   city: buildCity(STALL_GRID),
@@ -644,7 +640,7 @@ export const STALL_WORLD: World = {
   ],
   uturn: uturnLoop,
   uturnEnd: uturnLoop.corners[1][1] + UTURN_PAST_TURN,
-  cones: true,
+  blocked: true,
   reroutingMs: 3000,
   nsNames: ["Lamar Blvd", "Comal St", "Elm St"],
   ewNames: ["Oak St", "Pine St", "Cedar St", "Lake St"],
@@ -653,14 +649,14 @@ export const STALL_WORLD: World = {
 };
 
 /**
- * Rerouting: the Stalled city with no lane closure. Heavy traffic on Pine St, the street the car
+ * Rerouting: the Stalled city with no fire truck. Heavy traffic on Pine St, the street the car
  * would turn onto; it notices on its way up Comal St and goes on to Oak St instead.
  */
 export const REROUTE_WORLD: World = {
   ...STALL_WORLD,
   uturn: null,
   uturnEnd: 0,
-  cones: false,
+  blocked: false,
   startDelay: 6,
   heavyTraffic: {
     detectAt: 15,
@@ -685,7 +681,7 @@ export const LOOP_WORLD: World = {
   reroutes: LOOP_REROUTES,
   uturn: null,
   uturnEnd: 0,
-  cones: false,
+  blocked: false,
   reroutingMs: 5000,
   startDelay: 0,
   heavyTraffic: null,
