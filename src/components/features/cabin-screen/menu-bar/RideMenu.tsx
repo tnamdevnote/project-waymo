@@ -12,7 +12,7 @@ import { PullOverSheet } from "../pull-over/PullOverSheet";
 import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 
 /**
- * What "Report ride issue" offers in each demo scenario. Stalled and Looping offer the full set
+ * What "Fix a problem" offers in each demo scenario. Stalled and Looping offer the full set
  * so the rider picks what fits. Rerouting: it finds its own way round traffic.
  */
 const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {

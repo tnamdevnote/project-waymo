@@ -88,7 +88,7 @@ export const lostReasons = ["Try Another Path", "None of these"] as const;
 export type LostReason = (typeof lostReasons)[number];
 
 export type TroubleshootSheetProps = Omit<BottomSheetContentProps, "children"> & {
-  /** Which issues "Report ride issue" offers, in order. Defaults to all of `rideIssues`. */
+  /** Which issues "Fix a problem" offers, in order. Defaults to all of `rideIssues`. */
   issues?: readonly RideIssue[];
   onReport?: () => void;
   onReportIssue?: (issue: RideIssue) => void;
@@ -143,7 +143,7 @@ function TroubleshootBody({
                 onReport?.();
               }}
             >
-              Report ride issue
+              Fix a problem
             </ActionTile>
             <ActionTile tone="accent" onPress={onCallSupport}>
               Call support
