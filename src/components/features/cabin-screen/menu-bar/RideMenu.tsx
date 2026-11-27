@@ -1,14 +1,18 @@
-"use client";
+'use client';
 
 // CabinScreen.RideMenu: the floating menu bar shown during the ride. Pull over asks first in a
 // sheet, then stops the car; Resume ride drives on straight away. The rest report presses so the
 // screen can open its own panels.
-import { useEffect, useState } from "react";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { MenuBar, type MenuBarProps } from "@/components/ui/MenuBar";
-import { type RideScenario, useCabinScreen } from "../CabinScreenRoot";
-import { PullOverSheet } from "../pull-over/PullOverSheet";
-import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
+import { useEffect, useState } from 'react';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+import { MenuBar, type MenuBarProps } from '@/components/ui/MenuBar';
+import { type RideScenario, useCabinScreen } from '../CabinScreenRoot';
+import { PullOverSheet } from '../pull-over/PullOverSheet';
+import {
+  type RideIssue,
+  rideIssues,
+  TroubleshootSheet,
+} from '../troubleshoot/TroubleshootSheet';
 
 /**
  * What "Report ride issue" offers in each demo scenario. Stalled and Looping offer the full set
@@ -18,7 +22,7 @@ const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {
   stalled: rideIssues,
   looping: rideIssues,
   // The car reroutes round traffic on its own; nothing in its way to report.
-  rerouting: ["Something else"],
+  rerouting: ['Something else'],
 };
 
 function MusicIcon() {
@@ -86,12 +90,16 @@ function CallTimer() {
     const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
   }, []);
-  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const ss = String(seconds % 60).padStart(2, "0");
+  const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const ss = String(seconds % 60).padStart(2, '0');
   return (
     <span className="inline-flex">
       {[...`${mm}:${ss}`].map((char, i) =>
-        char === ":" ? <span key={i}>:</span> : <TimerDigit key={i} digit={char} />,
+        char === ':' ? (
+          <span key={i}>:</span>
+        ) : (
+          <TimerDigit key={i} digit={char} />
+        ),
       )}
     </span>
   );
@@ -113,7 +121,7 @@ function TimerDigit({ digit }: { digit: string }) {
   );
 }
 
-export type RideMenuProps = Omit<MenuBarProps, "children"> & {
+export type RideMenuProps = Omit<MenuBarProps, 'children'> & {
   /** Cabin temperature in °F. */
   temperature?: number;
   /** Controlled: whether music is playing. */
@@ -135,14 +143,15 @@ export function RideMenu({
   onTroubleshoot,
   onCallSupport,
   className,
-  "aria-label": ariaLabel = "Ride controls",
+  'aria-label': ariaLabel = 'Ride controls',
   ...props
 }: RideMenuProps) {
   const { state, actions } = useCabinScreen();
-  const hidden = state.phase !== "riding";
+  const hidden = state.phase !== 'riding';
   // While the car diagnoses a stall or reroutes, the bar keeps only what the rider might need now.
   const onCall = state.support !== null;
-  const diagnosing = state.diagnosis !== null || state.reroute !== null || onCall;
+  const diagnosing =
+    state.diagnosis !== null || state.reroute !== null || onCall;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pullOverOpen, setPullOverOpen] = useState(false);
   // "Call support", "Something else" and "None of these" in the sheet, and the bar's own Support
@@ -162,14 +171,14 @@ export function RideMenu({
       inert={hidden}
       data-hidden={hidden || undefined}
       className={[
-        "pointer-events-none absolute inset-x-0 bottom-12 flex justify-end px-12",
-        "transition-opacity duration-300 ease-out motion-reduce:transition-none",
-        "data-[hidden]:pointer-events-none data-[hidden]:opacity-0",
-      ].join(" ")}
+        'pointer-events-none absolute inset-x-0 bottom-12 flex justify-end px-12',
+        'transition-opacity duration-300 ease-out motion-reduce:transition-none',
+        'data-[hidden]:pointer-events-none data-[hidden]:opacity-0',
+      ].join(' ')}
     >
       <MenuBar
         aria-label={ariaLabel}
-        className={["pointer-events-auto", className].filter(Boolean).join(" ")}
+        className={['pointer-events-auto', className].filter(Boolean).join(' ')}
         {...props}
       >
         {!diagnosing && (
@@ -182,7 +191,7 @@ export function RideMenu({
               {({ isSelected }) => (
                 <>
                   <MusicIcon />
-                  {isSelected ? "Pause music" : "Play music"}
+                  {isSelected ? 'Pause music' : 'Play music'}
                 </>
               )}
             </MenuBar.Toggle>
@@ -209,16 +218,18 @@ export function RideMenu({
             }}
           />
         </BottomSheet>
-        {!state.driving && <MenuBar.Item onPress={actions.resume}>Resume ride</MenuBar.Item>}
+        {!state.driving && (
+          <MenuBar.Item onPress={actions.resume}>Resume ride</MenuBar.Item>
+        )}
         <MenuBar.Separator />
-        {state.support === "connecting" && (
+        {state.support === 'connecting' && (
           <MenuBar.Item tone="danger" onPress={actions.endSupport}>
             End call
           </MenuBar.Item>
         )}
         {/* Once connected the call is a toggle that's on, filled with accent and showing how long
             it's been going (Figma node 558:4795). Turning it off hangs up. */}
-        {state.support === "connected" && (
+        {state.support === 'connected' && (
           <MenuBar.Toggle
             aria-label="Support call"
             // Solid accent, not HeroUI's soft selected fill: a live call is the one thing on the
@@ -236,8 +247,7 @@ export function RideMenu({
         {diagnosing && !onCall && (
           <MenuBar.Item onPress={callSupport}>
             <HeadsetIcon />
-            {/* Per the Figma frames: "Call support" while scanning or rerouting, "Support" once detected. */}
-            {state.diagnosis === "scanning" || state.reroute ? "Call support" : "Support"}
+            Support
           </MenuBar.Item>
         )}
         {/* The item is the sheet's trigger: it opens the sheet and gets focus back on close. The
@@ -246,24 +256,22 @@ export function RideMenu({
           {!diagnosing && (
             <MenuBar.Item onPress={onTroubleshoot}>
               <QuestionIcon />
-              Troubleshoot
+              Help
             </MenuBar.Item>
           )}
           <TroubleshootSheet
             issues={ISSUES_BY_SCENARIO[state.scenario]}
             onCallSupport={callSupport}
             onReportIssue={(issue) => {
-              if (issue === "Something else") callSupport();
-            }}
-            onStuckReason={(reason) => {
-              if (reason === "None of these") return callSupport();
-              if (reason !== "Obstacles ahead") return;
-              setSheetOpen(false);
-              actions.startDiagnosis();
+              if (issue === 'Something else') callSupport();
+              if (issue === 'Waymo is stuck') {
+                setSheetOpen(false);
+                actions.startDiagnosis();
+              }
             }}
             onLostReason={(reason) => {
-              if (reason === "None of these") return callSupport();
-              if (reason !== "Try Another Path") return;
+              if (reason === 'None of these') return callSupport();
+              if (reason !== 'Try Another Path') return;
               setSheetOpen(false);
               actions.startReroute();
             }}
