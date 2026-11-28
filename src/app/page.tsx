@@ -9,7 +9,7 @@ export default function Home() {
           <CabinMap.FireTruck />
           <CabinMap.Traffic />
           <CabinMap.Route />
-          <CabinMap.PathChoices />
+          <CabinMap.PassArrows />
           <CabinMap.Vehicle />
           <CabinMap.Camera />
         </CabinMap.Viewport>
@@ -17,7 +17,7 @@ export default function Home() {
         <CabinScreen.Reroute />
         <CabinScreen.Support />
         <CabinScreen.VehicleThought />
-        <CabinScreen.PathPick />
+        <CabinScreen.Pass />
         <CabinScreen.TrafficReroute destination="Union Station" />
         <CabinScreen.Arrival minutes={10} at="3:30" />
         <CabinScreen.RideMenu />

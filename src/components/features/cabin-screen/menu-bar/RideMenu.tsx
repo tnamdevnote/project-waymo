@@ -12,14 +12,14 @@ import { PullOverSheet } from "../pull-over/PullOverSheet";
 import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 
 /**
- * What "Fix a problem" offers in each demo scenario. Stalled and Looping offer the full set
+ * What Troubleshoot offers in each demo scenario. Stalled and Looping offer the full set
  * so the rider picks what fits. Rerouting: it finds its own way round traffic.
  */
 const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {
   stalled: rideIssues,
   looping: rideIssues,
   // The car reroutes round traffic on its own; nothing in its way to report.
-  rerouting: ["Something else"],
+  rerouting: ["Other issue"],
 };
 
 function MusicIcon() {
@@ -41,8 +41,8 @@ function MusicIcon() {
   );
 }
 
-/** A shield with an exclamation mark, for Get help (Figma node 780:389). */
-function ShieldAlertIcon() {
+/** A circled question mark, for Help. */
+function QuestionIcon() {
   return (
     <svg
       aria-hidden
@@ -54,9 +54,9 @@ function ShieldAlertIcon() {
       strokeLinejoin="round"
       className="size-8"
     >
-      <path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z" />
-      <path d="M12 8v4" />
-      <path d="M12 16h.01" />
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+      <path d="M12 17h.01" />
     </svg>
   );
 }
@@ -142,12 +142,12 @@ export function RideMenu({
 }: RideMenuProps) {
   const { state, actions } = useCabinScreen();
   const hidden = state.phase !== "riding";
-  // While the car diagnoses a stall, takes a path suggestion or reroutes, the bar keeps only what
-  // the rider might need now.
+  // While the car diagnoses a stall, works out a way past the fire truck or reroutes, the bar keeps
+  // only what the rider might need now.
   const onCall = state.support !== null;
-  const diagnosing =
-    state.diagnosis !== null || state.pick !== null || state.reroute !== null || onCall;
-  // Behind the fire truck, not yet round it: "Waymo is stuck" asks the rider to help pick a path.
+  const passing = state.pass !== null && state.pass.stage !== "going";
+  const diagnosing = state.diagnosis !== null || passing || state.reroute !== null || onCall;
+  // Behind the fire truck, not yet round it: "Waymo is stuck" scans and offers the ways past.
   const canPickPath =
     state.world.blocked && state.course === state.world.loop && state.detour === null;
   // Stopping there on its own (not pulled over): ring Troubleshoot so the rider finds it, at the
@@ -156,8 +156,8 @@ export function RideMenu({
   const stuck = canPickPath && stoppingForTruck && state.driving;
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pullOverOpen, setPullOverOpen] = useState(false);
-  // "Call support", "Something else" and "None of these" in the sheet, and the bar's own Support
-  // item during diagnosis or rerouting, all put the rider through to Support.
+  // "Call support" and "Other issue" in the sheet, and the bar's own Support item during
+  // diagnosis or rerouting, all put the rider through to Support.
   const callSupport = () => {
     setSheetOpen(false);
     actions.startSupport();
@@ -248,7 +248,7 @@ export function RideMenu({
           <MenuBar.Item onPress={callSupport}>
             <HeadsetIcon />
             {/* Per the Figma frames: "Call support" while scanning or rerouting, "Support" once detected. */}
-            {state.diagnosis === "scanning" || state.pick || state.reroute
+            {state.diagnosis === "scanning" || passing || state.reroute
               ? "Call support"
               : "Support"}
           </MenuBar.Item>
@@ -258,8 +258,8 @@ export function RideMenu({
         <BottomSheet isOpen={sheetOpen} onOpenChange={setSheetOpen}>
           {!diagnosing && (
             <MenuBar.Item className={stuck ? "stuck-ring" : undefined} onPress={onTroubleshoot}>
-              <ShieldAlertIcon />
-              Get help
+              <QuestionIcon />
+              Help
             </MenuBar.Item>
           )}
           <TroubleshootSheet
@@ -267,20 +267,20 @@ export function RideMenu({
             onCallSupport={callSupport}
             skipStuckReasons={canPickPath}
             onReportIssue={(issue) => {
-              if (issue === "Something else") callSupport();
+              if (issue === "Other issue") callSupport();
               if (issue === "Waymo is stuck" && canPickPath) {
                 setSheetOpen(false);
-                actions.startPathPick();
+                actions.startPass();
               }
             }}
             onStuckReason={(reason) => {
-              if (reason === "None of these") return callSupport();
+              if (reason === "Call support") return callSupport();
               if (reason !== "Obstacles ahead") return;
               setSheetOpen(false);
               actions.startDiagnosis();
             }}
             onLostReason={(reason) => {
-              if (reason === "None of these") return callSupport();
+              if (reason === "Call support") return callSupport();
               if (reason !== "Try Another Path") return;
               setSheetOpen(false);
               actions.startReroute();

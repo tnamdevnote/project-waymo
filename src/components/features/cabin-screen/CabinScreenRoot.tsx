@@ -63,22 +63,31 @@ export type RidePhase = "boarding" | "riding";
  */
 export type DiagnosisStage = "scanning" | "detected" | "reviewing" | "resolving" | "confirmed";
 
-/** A way past the fire truck the rider can suggest. */
-export type PathChoice = "around" | "uturn";
+/**
+ * A way past the fire truck. "bypass": ease into the next lane and carry on up Comal St.
+ * "detour": a U-turn, back the way the car came, then Lake St.
+ */
+export type PassWay = "bypass" | "detour";
 
 /**
- * The rider is helping Waymo pick a path, after "Waymo is stuck" in the Stalled scenario.
- * "choosing": the choices are buttons on the map. "checking": Waymo is checking the one the rider
- * tapped, and they can still cancel. Then the car goes around, or, for a U-turn (a new route),
- * the reroute overview asks the rider to confirm it first. The rider only suggests.
+ * Getting past the fire truck, after "Waymo is stuck" in the Stalled scenario (see
+ * docs/decisions/firetruck-stuck.md). "scanning": the car checks the road ahead. "choosing": it
+ * proposes the bypass and counts down to taking it; the rider can go now or pick the detour.
+ * `focus` is the way the rider is pointing at, so the map can light its arrow. "going": the car
+ * is on its way, and a short note says which way.
  */
-export type PathPickState = { stage: "choosing" } | { stage: "checking"; choice: PathChoice };
+export type PassState =
+  | { stage: "scanning" }
+  | { stage: "choosing"; focus: PassWay | null }
+  | { stage: "going"; way: PassWay };
 
-/** How long "Waymo is checking…" shows: long enough to cancel a mistaken tap. */
-const CHECKING_MS = 5000;
+/** Minutes each way past the fire truck adds to the trip. */
+export const PASS_MINUTES: Record<PassWay, number> = { bypass: 1, detour: 4 };
 
-/** How long the rider has to confirm the U-turn they suggested before Ride Support is called. */
-const CONFIRM_ROUTE_MS = 15000;
+/** How long the car scans before it offers the ways past. */
+const PASS_SCAN_MS = 3500;
+/** How long the note shows once the car is on its way. */
+const PASS_GOING_MS = 5000;
 
 /**
  * The car is finding another way, after the rider reported "Waymo seems lost" and picked
@@ -90,9 +99,9 @@ const CONFIRM_ROUTE_MS = 15000;
 export type RerouteStage = "rerouting" | "overview";
 
 /**
- * The rider is on a call with Ride Support, after picking "Call support", "Something else" or
- * "None of these" in Troubleshoot. "connecting": reaching a remote agent. "connected": talking to
- * them through the car. The call ends when the rider hangs up from the menu bar.
+ * The rider is on a call with Ride Support, after picking "Call support" or "Other issue" in
+ * Troubleshoot. "connecting": reaching a remote agent. "connected": talking to them through the
+ * car. The call ends when the rider hangs up from the menu bar.
  */
 export type SupportStage = "connecting" | "connected";
 
@@ -144,14 +153,12 @@ export type CabinScreenState = {
   phase: RidePhase;
   /** Set while the car diagnoses a stall the rider reported; null otherwise. */
   diagnosis: DiagnosisStage | null;
-  /** Set while the rider is picking a path past the fire truck; null otherwise. */
-  pick: PathPickState | null;
+  /** Set while the car gets past the fire truck the rider reported; null otherwise. */
+  pass: PassState | null;
   /** Set while the car reroutes at the rider's request; null otherwise. */
   reroute: RerouteStage | null;
   /** Set while the rider is on a call with Ride Support; null otherwise. */
   support: SupportStage | null;
-  /** The reroute overview is for the rider's U-turn pick: unconfirmed, it goes to Ride Support. */
-  confirmingPick: boolean;
   /** Where the car's own reroute round traffic is; null until it notices the traffic. */
   traffic: TrafficStage | null;
   /** The loop the car is driving: `world.loop`, or a reroute's `to` / `world.uturn` once it has
@@ -180,12 +187,12 @@ export type CabinScreenActions = {
   setSpeed: (speed: number) => void;
   startDiagnosis: () => void;
   endDiagnosis: () => void;
-  /** Show the ways past the fire truck for the rider to pick from. */
-  startPathPick: () => void;
-  /** The rider suggests a way: Waymo checks it, then the car takes it. */
-  choosePath: (choice: PathChoice) => void;
-  /** Take back the suggestion while Waymo is still checking it. */
-  cancelPathChoice: () => void;
+  /** Scan the road ahead of the fire truck, then offer the ways past it. */
+  startPass: () => void;
+  /** The way past the rider is pointing at (hover or focus), or null. */
+  focusPassWay: (way: PassWay | null) => void;
+  /** Take that way past the fire truck now. */
+  choosePassWay: (way: PassWay) => void;
   startReroute: () => void;
   /** The rider accepts the new route: the car drives it. */
   confirmReroute: () => void;
@@ -218,9 +225,6 @@ export type CabinAnchor = {
 export type CabinScreenAnchors = {
   /** The front of the rider's car. Moved by CabinMap.Vehicle every frame. */
   vehicle: CabinAnchor;
-  /** The ends of the two paths the rider can pick. Moved by CabinMap.PathChoices every frame. */
-  goAround: CabinAnchor;
-  uturn: CabinAnchor;
 };
 
 export type CabinScreenContextValue = {
@@ -352,13 +356,6 @@ function createEngine(
       snapshot = live();
     },
     driveToEnd,
-    /** Take back a U-turn the car hasn't started: it's still standing on the shared first leg. */
-    cancelUturn() {
-      if (course !== world.uturn) return;
-      course = world.loop;
-      onCourse(course);
-      snapshot = live();
-    },
     /** Release the hold at the stop ahead and drive around what's blocking it (or, on the
      *  U-turn loop, turn round before it). */
     escape() {
@@ -472,7 +469,7 @@ function CabinScreenRun({
   const driving = drivingProp ?? drivingState;
   const [phase, setPhase] = useState<RidePhase>(defaultPhase);
   const [diagnosis, setDiagnosis] = useState<DiagnosisStage | null>(null);
-  const [pick, setPick] = useState<PathPickState | null>(null);
+  const [pass, setPass] = useState<PassState | null>(null);
   const [reroute, setReroute] = useState<RerouteStage | null>(null);
   const [support, setSupport] = useState<SupportStage | null>(null);
   // The agent picks up a moment after the rider calls.
@@ -556,46 +553,23 @@ function CabinScreenRun({
     }, CONFIRMED_MS);
     return () => clearTimeout(t);
   }, [diagnosis, engine]);
-  const [confirmingPick, setConfirmingPick] = useState(false);
-  // Waymo approves the rider's pick (this demo always does). Going around keeps the route, so the
-  // car just drives. A U-turn is a new route: the rider confirms it on the reroute overview.
+  // Getting past the fire truck: the scan runs, then the ways past show. Once the car is on its
+  // way, the note shows for a moment and the flow ends.
+  const passStage = pass?.stage;
   useEffect(() => {
-    if (pick?.stage !== "checking") return;
-    const t = setTimeout(() => {
-      if (pick.choice === "uturn") {
-        engine.reroute(true);
-        setConfirmingPick(true);
-        setReroute("overview");
-      } else engine.escape();
-      setPick(null);
-    }, CHECKING_MS);
+    if (passStage !== "scanning" && passStage !== "going") return;
+    const t = setTimeout(
+      () => setPass(passStage === "scanning" ? { stage: "choosing", focus: null } : null),
+      passStage === "scanning" ? PASS_SCAN_MS : PASS_GOING_MS,
+    );
     return () => clearTimeout(t);
-  }, [pick, engine]);
-  // Not confirmed: the car stays where it is, back on its old route, and Ride Support takes over.
-  useEffect(() => {
-    if (!confirmingPick) return;
-    const t = setTimeout(() => {
-      engine.cancelUturn();
-      setConfirmingPick(false);
-      setReroute(null);
-      setSupport("connecting");
-    }, CONFIRM_ROUTE_MS);
-    return () => clearTimeout(t);
-  }, [confirmingPick, engine]);
+  }, [passStage]);
 
-  const goAroundAnchorRef = useRef<HTMLDivElement>(null);
-  const uturnAnchorRef = useRef<HTMLDivElement>(null);
-  const [goAroundPoint] = useState(() => ({ x: 0, y: 0 }));
-  const [uturnPoint] = useState(() => ({ x: 0, y: 0 }));
   const vehicleAnchorRef = useRef<HTMLDivElement>(null);
   const [vehiclePoint] = useState(() => ({ x: 0, y: 0 }));
   const anchors = useMemo<CabinScreenAnchors>(
-    () => ({
-      vehicle: { ref: vehicleAnchorRef, point: vehiclePoint },
-      goAround: { ref: goAroundAnchorRef, point: goAroundPoint },
-      uturn: { ref: uturnAnchorRef, point: uturnPoint },
-    }),
-    [vehiclePoint, goAroundPoint, uturnPoint],
+    () => ({ vehicle: { ref: vehicleAnchorRef, point: vehiclePoint } }),
+    [vehiclePoint],
   );
 
   useLayoutEffect(() => {
@@ -619,19 +593,26 @@ function CabinScreenRun({
     () => ({
       setScenario,
       startRide: () => setPhase("riding"),
-      pullOver: () => {
-        // Pulling over takes back a pick Waymo hasn't acted on yet.
-        setPick((p) => p && { stage: "choosing" });
-        setDriving(false);
-      },
+      pullOver: () => setDriving(false),
       resume: () => setDriving(true),
       setSpeed: (n) => setSpeedState(Math.max(0, n)),
       startDiagnosis: () => setDiagnosis("scanning"),
       endDiagnosis: () => setDiagnosis(null),
-      startPathPick: () => setPick({ stage: "choosing" }),
-      choosePath: (choice) =>
-        setPick((p) => (p?.stage === "choosing" ? { stage: "checking", choice } : p)),
-      cancelPathChoice: () => setPick((p) => p && { stage: "choosing" }),
+      startPass: () => setPass({ stage: "scanning" }),
+      focusPassWay: (focus) =>
+        setPass((p) => (p?.stage === "choosing" && p.focus !== focus ? { ...p, focus } : p)),
+      choosePassWay: (way) => {
+        if (pass?.stage !== "choosing") return;
+        // The engine's own paths: the bypass is the way out past the truck (one lane left, then
+        // straight on); the detour is its U-turn, a new route the car drives to the end of.
+        engine.reroute(way === "detour");
+        engine.escape();
+        setDelay((d) => d + PASS_MINUTES[way]);
+        if (way === "detour") setArriving(true);
+        // Choosing is the go-ahead, even if the rider had pulled over.
+        setDriving(true);
+        setPass({ stage: "going", way });
+      },
       startReroute: () => {
         reroutedAt.current = Date.now();
         engine.pullUp();
@@ -642,14 +623,10 @@ function CabinScreenRun({
         setDelay((d) => d + added);
         engine.escape();
         setArriving(true);
-        setConfirmingPick(false);
         setReroute(null);
       },
       startSupport: () => {
-        // Calling instead of confirming turns the rider's U-turn down.
-        if (confirmingPick) engine.cancelUturn();
-        setConfirmingPick(false);
-        setPick(null);
+        setPass(null);
         setDiagnosis(null);
         setReroute(null);
         setSupport("connecting");
@@ -659,12 +636,13 @@ function CabinScreenRun({
         if (!world.uturn) return;
         setSupport(null);
         setDiagnosis(null);
+        setPass(null);
         engine.reroute(true);
         setReroute("overview");
       },
       reset,
     }),
-    [setScenario, setDriving, engine, reset, world, confirmingPick],
+    [setScenario, setDriving, engine, reset, world, pass],
   );
 
   const value = useMemo<CabinScreenContextValue>(
@@ -674,10 +652,9 @@ function CabinScreenRun({
         world,
         phase,
         diagnosis,
-        pick,
+        pass,
         reroute,
         support,
-        confirmingPick,
         traffic,
         course,
         detour,
@@ -696,10 +673,9 @@ function CabinScreenRun({
       world,
       phase,
       diagnosis,
-      pick,
+      pass,
       reroute,
       support,
-      confirmingPick,
       traffic,
       course,
       detour,

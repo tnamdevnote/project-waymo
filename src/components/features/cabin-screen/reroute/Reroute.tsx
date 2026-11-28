@@ -5,10 +5,9 @@
 // half, like Diagnosis. While the car works out the route ("rerouting") the 3D map shows on the
 // right. Then a flat street map takes over the right side to show the new route next to the old
 // one, and the panel asks the rider to confirm it ("overview"). It all goes away when the car
-// drives off. It also shows the overview after the rider's U-turn pick (CabinScreen.PathPick); if
-// they don't confirm that one in time, Ride Support is called.
+// drives off.
 import { Button } from "@heroui/react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { type RerouteStage, useCabinScreen } from "../CabinScreenRoot";
 import { VehicleOrb } from "../thinking-bubble/VehicleOrb";
 import { RerouteMap } from "./RerouteMap";
@@ -30,11 +29,6 @@ export function Reroute({ className }: RerouteProps) {
   // Keep the last stage's copy while the panel fades out.
   const [shown, setShown] = useState<RerouteStage>("rerouting");
   if (stage && stage !== shown) setShown(stage);
-  // After the rider's pick, the Cancel they were on is gone: move focus to the next action.
-  const confirmRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (state.confirmingPick) confirmRef.current?.focus();
-  }, [state.confirmingPick]);
 
   return (
     <>
@@ -71,7 +65,6 @@ export function Reroute({ className }: RerouteProps) {
           // The screen's one action: the car waits on the new route until the rider accepts it.
           <div className="flex flex-col gap-4">
             <Button
-              ref={confirmRef}
               size="lg"
               fullWidth
               className="h-20 text-caption"
@@ -79,11 +72,6 @@ export function Reroute({ className }: RerouteProps) {
             >
               Confirm and resume
             </Button>
-            {state.confirmingPick && (
-              <p className="text-caption text-muted">
-                If you don’t confirm, we’ll connect you to Ride Support.
-              </p>
-            )}
           </div>
         )}
       </section>
@@ -91,7 +79,6 @@ export function Reroute({ className }: RerouteProps) {
       <output className="sr-only">
         {stage === "rerouting" ? `${HEADING.rerouting}. Re-routing.` : ""}
         {stage === "overview" ? `${HEADING.overview} ready.` : ""}
-        {state.confirmingPick ? " If you don’t confirm, we’ll connect you to Ride Support." : ""}
       </output>
     </>
   );

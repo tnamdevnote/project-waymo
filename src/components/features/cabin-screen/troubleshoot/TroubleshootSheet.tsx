@@ -14,7 +14,9 @@ const tone = {
   danger: "border-danger text-danger",
 } as const;
 
-type ActionTileProps = Omit<ButtonProps, "variant"> & { tone?: keyof typeof tone };
+type ActionTileProps = Omit<ButtonProps, "variant"> & {
+  tone?: keyof typeof tone;
+};
 
 // A large outlined tile, sized for a moving car rather than a toolbar.
 function ActionTile({ tone: t = "default", className, ...props }: ActionTileProps) {
@@ -78,17 +80,17 @@ function Hold911Tile({ onCall }: { onCall?: () => void }) {
 /** One column per issue tile, up to three. */
 const COLS = ["grid-cols-1", "grid-cols-2", "grid-cols-3"];
 
-export const rideIssues = ["Waymo is stuck", "Waymo seems lost", "Something else"] as const;
+export const rideIssues = ["Waymo is stuck", "Waymo seems lost", "Other issue"] as const;
 export type RideIssue = (typeof rideIssues)[number];
 
-export const stuckReasons = ["Obstacles ahead", "None of these"] as const;
+export const stuckReasons = ["Obstacles ahead", "Call support"] as const;
 export type StuckReason = (typeof stuckReasons)[number];
 
-export const lostReasons = ["Try Another Path", "None of these"] as const;
+export const lostReasons = ["Try Another Path", "Call support"] as const;
 export type LostReason = (typeof lostReasons)[number];
 
 export type TroubleshootSheetProps = Omit<BottomSheetContentProps, "children"> & {
-  /** Which issues "Fix a problem" offers, in order. Defaults to all of `rideIssues`. */
+  /** Which issues Troubleshoot offers, in order. Defaults to all of `rideIssues`. */
   issues?: readonly RideIssue[];
   onReport?: () => void;
   onReportIssue?: (issue: RideIssue) => void;
@@ -128,9 +130,11 @@ function TroubleshootBody({
         </BottomSheet.Header>
       ) : (
         <BottomSheet.Header>
-          <BottomSheet.Heading>Tell Waymo what’s wrong</BottomSheet.Heading>
+          <BottomSheet.Heading>Tell us whats happening</BottomSheet.Heading>
           <BottomSheet.Description>
-            Let us know what’s happening so we can help.
+            {step === "actions"
+              ? "Choose an option below to resolve the issue"
+              : "Share what you’re experiencing so we can assist."}
           </BottomSheet.Description>
         </BottomSheet.Header>
       )}
@@ -143,7 +147,7 @@ function TroubleshootBody({
                 onReport?.();
               }}
             >
-              Fix a problem
+              Troubleshoot
             </ActionTile>
             <ActionTile tone="accent" onPress={onCallSupport}>
               Call support
@@ -170,7 +174,11 @@ function TroubleshootBody({
         {step === "stuck" && (
           <div className="grid grid-cols-2 gap-4">
             {stuckReasons.map((reason) => (
-              <ActionTile key={reason} onPress={() => onStuckReason?.(reason)}>
+              <ActionTile
+                key={reason}
+                tone={reason === "Call support" ? "accent" : "default"}
+                onPress={() => onStuckReason?.(reason)}
+              >
                 {reason}
               </ActionTile>
             ))}
@@ -179,7 +187,11 @@ function TroubleshootBody({
         {step === "lost" && (
           <div className="grid grid-cols-2 gap-4">
             {lostReasons.map((reason) => (
-              <ActionTile key={reason} onPress={() => onLostReason?.(reason)}>
+              <ActionTile
+                key={reason}
+                tone={reason === "Call support" ? "accent" : "default"}
+                onPress={() => onLostReason?.(reason)}
+              >
                 {reason}
               </ActionTile>
             ))}

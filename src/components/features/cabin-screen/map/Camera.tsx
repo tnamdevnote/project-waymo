@@ -26,8 +26,12 @@ function useReducedMotion() {
   );
 }
 
-/** The closer view while the rider picks a path, meters, as for the props below. */
-const PICK_VIEW = { distance: 14, height: 28, lookAhead: 7 };
+/**
+ * The view while the car gets past the fire truck, meters, as for the props below: up a little
+ * and aimed just ahead, so the truck clears the top edge, the U-turn's arrowhead stays on screen
+ * and the car clears the menu bar.
+ */
+const PASS_VIEW = { distance: 15, height: 46, lookAhead: 6 };
 
 export function Camera({
   distance = 15,
@@ -53,12 +57,12 @@ export function Camera({
   splitOffset?: number;
 }) {
   const { meta, state } = useCabinScreen();
-  // While the rider picks a path, come in closer so the ways past the truck read clearly.
-  const picking = state.pick !== null;
-  // Any split-view panel over the left half: PathPick, Diagnosis, Reroute (before its overhead map)
+  // While the car scans and offers the ways past the fire truck, frame the truck and both ways.
+  const passing = state.pass !== null && state.pass.stage !== "going";
+  // Any split-view panel over the left half: Pass, Diagnosis, Reroute (before its overhead map)
   // or Support.
   const split =
-    picking || state.diagnosis !== null || state.reroute === "rerouting" || state.support !== null;
+    passing || state.diagnosis !== null || state.reroute === "rerouting" || state.support !== null;
   const { course } = state;
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const reduced = useReducedMotion();
@@ -84,7 +88,7 @@ export function Camera({
       .at(live.dist + 6, rig.dir)
       .sub(course.at(live.dist - 6, rig.tmp))
       .normalize();
-    const close = picking ? PICK_VIEW : { distance, height, lookAhead };
+    const close = passing ? PASS_VIEW : { distance, height, lookAhead };
     rig.want.copy(rig.ego).addScaledVector(rig.dir, -close.distance).setY(close.height);
     rig.aim.copy(rig.ego).addScaledVector(rig.dir, close.lookAhead);
     if (split && splitOffset !== 0) {

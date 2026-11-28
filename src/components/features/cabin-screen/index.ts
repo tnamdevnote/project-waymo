@@ -3,7 +3,7 @@
 import { Camera } from "./map/Camera";
 import { City } from "./map/City";
 import { FireTruck } from "./map/FireTruck";
-import { PathChoices } from "./map/PathChoices";
+import { PassArrows } from "./map/PassArrows";
 import { Route } from "./map/Route";
 import { Traffic } from "./map/Traffic";
 import { Vehicle } from "./map/Vehicle";
@@ -12,7 +12,7 @@ import { Arrival } from "./arrival/ArrivalPill";
 import { CabinScreenRoot } from "./CabinScreenRoot";
 import { Diagnosis } from "./diagnosis/Diagnosis";
 import { RideMenu } from "./menu-bar/RideMenu";
-import { PathPick } from "./path-pick/PathPick";
+import { Pass } from "./pass/Pass";
 import { Reroute } from "./reroute/Reroute";
 import { Reset } from "./reset/ResetButton";
 import { StartRide } from "./start-ride/StartRide";
@@ -27,7 +27,7 @@ export const CabinScreen = {
   Arrival,
   VehicleThought,
   Diagnosis,
-  PathPick,
+  Pass,
   Reroute,
   Support,
   TrafficReroute,
@@ -39,7 +39,7 @@ export const CabinMap = {
   FireTruck,
   Traffic,
   Route,
-  PathChoices,
+  PassArrows,
   Vehicle,
   Camera,
 };
@@ -54,8 +54,8 @@ export type {
   CabinScreenRootProps,
   CabinScreenState,
   DiagnosisStage,
-  PathChoice,
-  PathPickState,
+  PassState,
+  PassWay,
   RerouteStage,
   RidePhase,
   RideScenario,
@@ -70,7 +70,7 @@ export type {
   TroubleshootSheetProps,
 } from "./troubleshoot/TroubleshootSheet";
 export type { DiagnosisProps } from "./diagnosis/Diagnosis";
-export type { PathPickProps } from "./path-pick/PathPick";
+export type { PassProps } from "./pass/Pass";
 export type { RerouteProps } from "./reroute/Reroute";
 export type { SupportProps } from "./support/Support";
 export type { TrafficRerouteProps } from "./traffic/TrafficReroute";

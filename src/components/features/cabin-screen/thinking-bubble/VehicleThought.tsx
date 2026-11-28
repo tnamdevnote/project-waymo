@@ -42,7 +42,7 @@ export type VehicleThoughtProps = Omit<ThinkingBubbleContentProps, "children" | 
 
 export function VehicleThought(props: VehicleThoughtProps) {
   const { state, meta, anchors } = useCabinScreen();
-  const { motion, driving, phase, diagnosis, pick, reroute, support, arriving } = state;
+  const { motion, driving, phase, diagnosis, pass, reroute, support, arriving } = state;
   // Diagnosing, rerouting or on a Support call: the bubble says that, not the red light.
   const busy = diagnosis !== null || reroute !== null || support !== null;
   const auto = phase === "riding" && driving;
@@ -81,12 +81,12 @@ export function VehicleThought(props: VehicleThoughtProps) {
       setShown("green");
     }
   }
-  // And when Waymo takes the path the rider picked.
-  const picking = pick !== null;
-  const [prevPicking, setPrevPicking] = useState(picking);
-  if (picking !== prevPicking) {
-    setPrevPicking(picking);
-    if (!picking && auto) {
+  // And when the car sets off past the fire truck.
+  const passing = pass !== null && pass.stage !== "going";
+  const [prevPassing, setPrevPassing] = useState(passing);
+  if (passing !== prevPassing) {
+    setPrevPassing(passing);
+    if (!passing && auto) {
       setLight("green");
       setShown("green");
     }
@@ -102,7 +102,7 @@ export function VehicleThought(props: VehicleThoughtProps) {
   // React Aria places the bubble once, on open. The car keeps sliding a little on screen while it
   // brakes and the camera settles, so follow it by the drift since then.
   // Closed in the overhead view: the car is too small up there to point a bubble at.
-  const open = !picking && reroute !== "overview" && (light !== null || busy);
+  const open = !passing && reroute !== "overview" && (light !== null || busy);
   const bubble = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;

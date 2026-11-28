@@ -1,7 +1,7 @@
 "use client";
 
 // CabinScreen.Support: the split-view panel shown while the rider is on a call with Ride Support,
-// after picking "Call support", "Something else" or "None of these" in Troubleshoot. Same layout
+// after picking "Call support" or "Other issue" in Troubleshoot. Same layout
 // as Diagnosis and Reroute: it covers the left half and fades into the map.
 // Figma: "connecting" is node 558:4747, "connected" is node 558:4795.
 import { Button } from "@heroui/react";
@@ -11,7 +11,10 @@ import { VehicleOrb } from "../thinking-bubble/VehicleOrb";
 
 /** What the panel says at each stage: the heading, and the line under it. */
 const STAGE: Record<SupportStage, { heading: string; status: string }> = {
-  connecting: { heading: "Help is on the way", status: "Connecting you to the remote agent" },
+  connecting: {
+    heading: "Help is on the way",
+    status: "Connecting you to the remote agent",
+  },
   connected: {
     heading: "You’re connected",
     status: "Speak naturally. Rider Support can hear you through the car.",

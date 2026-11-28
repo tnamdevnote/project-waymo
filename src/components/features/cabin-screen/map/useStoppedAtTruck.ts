@@ -26,18 +26,3 @@ export function useStoppingForTruck() {
   );
   return slowing && near;
 }
-
-/** Whether the car is standing where it stops behind the fire truck, so it's really stuck. */
-export function useStoppedAtTruck() {
-  const { meta, state } = useCabinScreen();
-  const { loop } = state.world;
-  return useSyncExternalStore(
-    meta.subscribe,
-    () => {
-      const { dist, speed } = meta.getSnapshot();
-      const past = wrap(dist - loop.stopAt + loop.len / 2, loop.len) - loop.len / 2;
-      return speed < 0.25 && Math.abs(past) < 0.6;
-    },
-    () => false,
-  );
-}
