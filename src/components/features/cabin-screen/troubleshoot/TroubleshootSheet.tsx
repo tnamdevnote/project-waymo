@@ -88,10 +88,13 @@ export const lostReasons = ["Try Another Path", "None of these"] as const;
 export type LostReason = (typeof lostReasons)[number];
 
 export type TroubleshootSheetProps = Omit<BottomSheetContentProps, "children"> & {
-  /** Which issues "Report ride issue" offers, in order. Defaults to all of `rideIssues`. */
+  /** Which issues "Fix a problem" offers, in order. Defaults to all of `rideIssues`. */
   issues?: readonly RideIssue[];
   onReport?: () => void;
   onReportIssue?: (issue: RideIssue) => void;
+  /** "Waymo is stuck" goes straight to something else (the caller closes the sheet) instead of
+   *  asking the follow-up question. */
+  skipStuckReasons?: boolean;
   /** The rider's answer to the follow-up question after "Waymo is stuck". */
   onStuckReason?: (reason: StuckReason) => void;
   /** The rider's answer to the follow-up question after "Waymo seems lost". */
@@ -107,6 +110,7 @@ function TroubleshootBody({
   issues = rideIssues,
   onReport,
   onReportIssue,
+  skipStuckReasons = false,
   onStuckReason,
   onLostReason,
   onCallSupport,
@@ -117,15 +121,17 @@ function TroubleshootBody({
   return (
     <>
       {step === "stuck" ? (
-        // The follow-up question leads; "Troubleshoot" drops to context.
+        // The follow-up question leads; "Get help" drops to context.
         <BottomSheet.Header>
           <BottomSheet.Heading>Tell us what’s happening</BottomSheet.Heading>
-          <BottomSheet.Description>Troubleshoot</BottomSheet.Description>
+          <BottomSheet.Description>Get help</BottomSheet.Description>
         </BottomSheet.Header>
       ) : (
         <BottomSheet.Header>
-          <BottomSheet.Heading>Troubleshoot</BottomSheet.Heading>
-          <BottomSheet.Description>Tell us what’s happening</BottomSheet.Description>
+          <BottomSheet.Heading>Tell Waymo what’s wrong</BottomSheet.Heading>
+          <BottomSheet.Description>
+            Let us know what’s happening so we can help.
+          </BottomSheet.Description>
         </BottomSheet.Header>
       )}
       <BottomSheet.Body>
@@ -137,7 +143,7 @@ function TroubleshootBody({
                 onReport?.();
               }}
             >
-              Report ride issue
+              Fix a problem
             </ActionTile>
             <ActionTile tone="accent" onPress={onCallSupport}>
               Call support
@@ -151,7 +157,7 @@ function TroubleshootBody({
               <ActionTile
                 key={issue}
                 onPress={() => {
-                  if (issue === "Waymo is stuck") setStep("stuck");
+                  if (issue === "Waymo is stuck" && !skipStuckReasons) setStep("stuck");
                   if (issue === "Waymo seems lost") setStep("lost");
                   onReportIssue?.(issue);
                 }}
@@ -188,6 +194,7 @@ export function TroubleshootSheet({
   issues,
   onReport,
   onReportIssue,
+  skipStuckReasons,
   onStuckReason,
   onLostReason,
   onCallSupport,
@@ -200,6 +207,7 @@ export function TroubleshootSheet({
         issues={issues}
         onReport={onReport}
         onReportIssue={onReportIssue}
+        skipStuckReasons={skipStuckReasons}
         onStuckReason={onStuckReason}
         onLostReason={onLostReason}
         onCallSupport={onCallSupport}

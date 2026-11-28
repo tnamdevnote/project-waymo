@@ -23,7 +23,7 @@ export type Clear = { left: number; top: number; right: number; bottom: number }
 /** World meters to screen px. */
 export type View = { s: number; x: (x: number) => number; y: (z: number) => number };
 
-/** World points along `course` from `from` to `to` (route distances), past the cones if `detour`. */
+/** World points along `course` from `from` to `to` (route distances), round the fire truck if `detour`. */
 export function trace(course: Loop, detour: number | null, from: number, to: number) {
   const out: Point[] = [];
   const p = new THREE.Vector3();

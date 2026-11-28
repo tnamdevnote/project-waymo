@@ -6,10 +6,10 @@ export default function Home() {
       <CabinScreen.Root defaultPhase="boarding" className="size-full">
         <CabinMap.Viewport>
           <CabinMap.City />
-          <CabinMap.Cones />
+          <CabinMap.FireTruck />
           <CabinMap.Traffic />
           <CabinMap.Route />
-          <CabinMap.Obstruction />
+          <CabinMap.PathChoices />
           <CabinMap.Vehicle />
           <CabinMap.Camera />
         </CabinMap.Viewport>
@@ -17,6 +17,7 @@ export default function Home() {
         <CabinScreen.Reroute />
         <CabinScreen.Support />
         <CabinScreen.VehicleThought />
+        <CabinScreen.PathPick />
         <CabinScreen.TrafficReroute destination="Union Station" />
         <CabinScreen.Arrival minutes={10} at="3:30" />
         <CabinScreen.RideMenu />

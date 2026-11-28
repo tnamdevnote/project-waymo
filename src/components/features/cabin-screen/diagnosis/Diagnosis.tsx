@@ -62,7 +62,7 @@ export function Diagnosis({ className }: DiagnosisProps) {
         .join(" ")}
     >
       <header className="flex flex-col gap-3">
-        <p className="text-caption font-medium text-muted">Troubleshoot</p>
+        <p className="text-caption font-medium text-muted">Get help</p>
         <h2 id={headingId} className="text-heading">
           {copy.heading}
         </h2>

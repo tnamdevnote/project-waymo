@@ -109,7 +109,8 @@ export function Route({
   useFrame(() => {
     uniforms.uCar.value = meta.getSnapshot().dist;
     uniforms.uLen.value = course.len;
-    uniforms.uAhead.value = ahead;
+    // While the rider picks a path, the dotted choices stand in for the route ahead.
+    uniforms.uAhead.value = state.pick ? 0.01 : ahead;
     uniforms.uBehind.value = Math.max(behind, 0.01);
   });
 

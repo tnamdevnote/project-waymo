@@ -1,5 +1,7 @@
 # Obstruction marker: decided from /proto/obstruction
 
+> Retired: Stalled now uses a parked fire truck and the pick-a-path screen (`CabinScreen.PathPick`). `CabinMap.Obstruction` and the cones were removed.
+
 Date: 2026-11-14. How the cabin map marks what the car is stuck behind once diagnosis reaches "detected" (Figma: Cabin Screen / Stalled — 3 Cones detected). Lives in `CabinMap.Obstruction` (`src/components/features/cabin-screen/map/Obstruction.tsx`).
 
 ## Picked: Heat
