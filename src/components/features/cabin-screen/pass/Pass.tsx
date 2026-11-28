@@ -4,12 +4,11 @@
 // Stalled scenario (docs/decisions/firetruck-stuck.md). A split view over the left of the map:
 // the car scans the road ahead, then says it will pass on the left and counts down to doing it.
 // The rider can go now or take the detour instead; nothing has to be pressed for the ride to go
-// on. CabinMap.PassArrows draws both ways on the road. Once the car moves, a short note says
-// which way it went.
-import { Button, Chip } from "@heroui/react";
+// on. CabinMap.PassArrows draws both ways on the road.
+import { Button } from "@heroui/react";
 import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
-import { ScanIndicator } from "@/components/ui/ScanIndicator";
 import { PASS_MINUTES, type PassWay, useCabinScreen } from "../CabinScreenRoot";
+import { VehicleOrb } from "../thinking-bubble/VehicleOrb";
 
 /** Seconds before the car takes the bypass on its own. */
 const COUNTDOWN_S = 10;
@@ -171,9 +170,6 @@ export function Pass({ className }: PassProps) {
   const [shown, setShown] = useState<"scanning" | "choosing">("scanning");
   if ((stage === "scanning" || stage === "choosing") && stage !== shown) setShown(stage);
   const going = state.pass?.stage === "going" ? state.pass.way : null;
-  // Keep the last way while the note fades out.
-  const [lastWay, setLastWay] = useState<PassWay>("bypass");
-  if (going && going !== lastWay) setLastWay(going);
 
   return (
     <>
@@ -194,7 +190,9 @@ export function Pass({ className }: PassProps) {
             on one line. */}
         <div className="flex w-lg flex-col gap-8 bg-surface p-8 pr-4 pb-12 xl:w-xl xl:gap-12 xl:p-12 xl:pr-6">
           <header className="flex flex-col gap-2 xl:gap-3">
-            {/* The warning sign is in the car's thought bubble (CabinScreen.VehicleThought). */}
+            {/* The warning sign is in the car's thought bubble (CabinScreen.VehicleThought). The
+                eyebrow matches Diagnosis, Reroute and Support. */}
+            <p className="text-caption font-medium text-muted">Ride Support</p>
             <h2 id={headingId} className="text-heading text-balance">
               {shown === "choosing" ? (
                 <span className="whitespace-nowrap">Obstruction detected</span>
@@ -209,29 +207,18 @@ export function Pass({ className }: PassProps) {
             </p>
           </header>
           {shown === "scanning" ? (
-            <ScanIndicator
-              className="aspect-square w-full max-w-80 rounded-3xl"
-              aria-label="Scanning the road ahead"
-            />
+            // Same thinking orb as Diagnosis and Reroute while the car works something out. The
+            // orb is decorative; the sr-only output below announces the stage.
+            <div className="flex items-center gap-4">
+              <VehicleOrb state="solving" className="size-12" />
+              <p className="text-caption">Scanning…</p>
+            </div>
           ) : (
             <Choices />
           )}
         </div>
         <div aria-hidden className="w-24 bg-linear-to-r from-surface to-transparent" />
       </section>
-      {/* Once moving: which way, and what it adds. Bottom left, level with the ride controls and clear
-          of the arrival pill at the top. */}
-      <div
-        aria-hidden={!going || undefined}
-        data-hidden={!going || undefined}
-        className="pass-fade pointer-events-none absolute bottom-12 left-12 flex items-center gap-4 rounded-full bg-surface py-4 pr-8 pl-6 shadow-float"
-      >
-        <WayIcon way={lastWay} className="size-8 text-accent" />
-        <span className="text-caption">{WAYS[lastWay].going}</span>
-        <Chip size="lg" color="success" variant="soft" className="text-caption">
-          {WAYS[lastWay].cost}
-        </Chip>
-      </div>
       {/* One announcement per stage; the panel's text changes too often to be a live region. */}
       <output className="sr-only">
         {stage === "scanning" ? "Scanning the road ahead." : ""}

@@ -23,11 +23,11 @@ Variant 2's split view with Variant 3's content. The car proposes, and the rider
 - Camera: while the panel shows (scanning and choosing), `CabinMap.Camera` treats it as a split view and moves sideways by `splitOffset` (0.4), so the car sits about 70% across the screen. It also pulls up to 46m, aimed 6m ahead of the car (`PASS_VIEW`), so the truck clears the top edge, the U-turn arrowhead stays on screen, and the car clears the menu bar. It eases back to the ride view once the car moves.
 - The green route ahead stays drawn under the arrows.
 - While the panel shows, the menu bar keeps only Pull over and Call support, as in the other split views.
-- While the panel shows, the arrival pill moves from the top center to the right, beside the Reset button, so it never sits on the heading.
+- While the panel shows, the arrival pill hides, as in every split view.
 - No eyebrow above the heading: "Obstruction detected" leads.
 - Both buttons share shape and alignment: icon on the left, then the label with its seconds or cost.
 - Focus moves to "Pass on the left" when the buttons appear. Screen readers hear one announcement per stage, not every second of the countdown.
-- Once moving: a note at the bottom left, level with the ride controls and clear of the arrival pill, reads "Passing on the left · +1 min" or "Turning around · +4 min" for 5 seconds.
+- Once moving: no on-screen note. Screen readers hear "Passing on the left, +1 min." or "Turning around, +4 min."
 
 ## Rejected
 

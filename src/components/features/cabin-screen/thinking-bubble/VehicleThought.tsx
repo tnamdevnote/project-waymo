@@ -1,8 +1,9 @@
 "use client";
 
 // CabinScreen.VehicleThought: a thought bubble over the rider's car showing what it's doing when it
-// stops on its own (behind the parked fire truck): a muted question mark while it brakes and
-// waits, unsure how to get past, then a navigation arrow as it pulls away.
+// stops on its own (behind the parked fire truck): a muted question mark once it has come to a
+// full stop, unsure how to get past (a second before the ring on Help), then a navigation arrow as
+// it pulls away.
 // Not shown when the rider pulled over: they asked for that stop, so there's nothing to explain.
 // After the rider reports the fire truck, it keeps the question mark while the car scans, shows a
 // warning sign while the car offers the ways past, then the navigation arrow as it sets off.
@@ -34,7 +35,7 @@ const THOUGHT: Record<Light, Thought> = {
 const LIGHTS = Object.keys(THOUGHT) as Light[];
 
 const ANNOUNCE: Record<Light, string> = {
-  red: "Stopping. Something is blocking the lane.",
+  red: "Stopped. Something is blocking the lane.",
   green: "Continuing.",
 };
 
@@ -55,8 +56,9 @@ export function VehicleThought(props: VehicleThoughtProps) {
   const [prevMotion, setPrevMotion] = useState(motion);
   if (motion !== prevMotion) {
     setPrevMotion(motion);
-    // Stopping at the end of a confirmed route is arriving, not being stuck: no question mark.
-    if (motion === "stopping" && auto && !arriving) {
+    // Wait for a full stop; Help's ring follows a second later (RideMenu). Stopping at the end of
+    // a confirmed route is arriving, not being stuck: no question mark.
+    if (motion === "stopped" && auto && !arriving) {
       setLight("red");
       setShown("red");
     } else if (motion === "driving" && light === "red") {

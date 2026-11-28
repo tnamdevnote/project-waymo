@@ -64,10 +64,11 @@
 }
 
 /* Help while the car is stuck: a border micro-interaction draws the rider's eye to it. A hairline
-   fades in, thickens to 4px while a green-to-blue gradient (twice round) spins round
-   the pill, then thins out again. It plays once, when the car comes to a full stop. A user-approved
-   exception to DESIGN.md: it uses the brand swatches directly, green included. A mask cuts the
-   middle out, so the button's own fill and focus ring show. Reduced motion gets a still 4px ring that fades in and out. */
+   fades in, thickens to 4px while a green-to-blue gradient (twice round) spins round the pill,
+   then thins out again. It plays once, 1s after the car comes to a full stop and its question
+   mark shows. A user-approved exception to DESIGN.md: it uses the brand swatches directly, green
+   included. A mask cuts the middle out, so the button's own fill and focus ring show. Reduced
+   motion gets a still 4px ring that fades in and out, after the same delay. */
 @property --stuck-angle {
   syntax: "<angle>";
   inherits: false;
@@ -137,7 +138,7 @@
       linear-gradient(black 0 0);
     mask-composite: exclude;
     pointer-events: none;
-    animation: stuck-sweep 2200ms ease-in-out both;
+    animation: stuck-sweep 2200ms ease-in-out 1000ms both;
   }
 
   @media (prefers-reduced-motion: reduce) {

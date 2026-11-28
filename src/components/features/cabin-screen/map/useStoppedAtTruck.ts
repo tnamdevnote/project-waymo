@@ -9,7 +9,7 @@ const BRAKING_M = 25;
 
 /**
  * Whether the car is stopping, or has stopped, for the fire truck. True from the moment it starts
- * braking, which is when its question mark shows.
+ * braking; the question mark and the ring on Help wait until it is fully stopped.
  */
 export function useStoppingForTruck() {
   const { meta, state } = useCabinScreen();

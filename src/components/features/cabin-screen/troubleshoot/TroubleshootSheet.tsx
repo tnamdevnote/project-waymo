@@ -130,11 +130,13 @@ function TroubleshootBody({
         </BottomSheet.Header>
       ) : (
         <BottomSheet.Header>
-          <BottomSheet.Heading>Tell us whats happening</BottomSheet.Heading>
+          <BottomSheet.Heading>
+            {step === "actions" ? "Tell us what’s wrong" : "Finding a new route"}
+          </BottomSheet.Heading>
           <BottomSheet.Description>
             {step === "actions"
               ? "Choose an option below to resolve the issue"
-              : "Share what you’re experiencing so we can assist."}
+              : "Waymo can try a different route to get you back on track."}
           </BottomSheet.Description>
         </BottomSheet.Header>
       )}
