@@ -1,7 +1,8 @@
 "use client";
 
 // CabinScreen.Pass: getting past the fire truck, after the rider reports "Waymo is stuck" in the
-// Stalled scenario (docs/decisions/firetruck-stuck.md). A split view over the left of the map:
+// Stalled scenario (docs/decisions/firetruck-stuck.md). Looping shows the same panel with no truck:
+// the car pulls up, and either choice takes it off the block. A split view over the left of the map:
 // the car scans the road ahead, then says it will pass on the left and counts down to doing it.
 // The rider can go now or take the detour instead; nothing has to be pressed for the ride to go
 // on. CabinMap.PassArrows draws both ways on the road.

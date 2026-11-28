@@ -1,7 +1,7 @@
 "use client";
 
 // Demo control on the Start ride screen: a segmented control that picks which story the ride
-// plays: Stalled, Looping or Rerouting.
+// plays: Stalled or Looping.
 //
 // Styled after the emil-prototype picker (dark glass pill, white-alpha text, a highlight that
 // slides to the selected segment), scaled up to the cabin's type. Segments are 64px tall, under the 80px touch-target rule, at the user's request.
@@ -14,7 +14,6 @@ import { type RideScenario, useCabinScreen } from "../CabinScreenRoot";
 const SCENARIOS: { id: RideScenario; label: string }[] = [
   { id: "stalled", label: "Stalled" },
   { id: "looping", label: "Looping" },
-  { id: "rerouting", label: "Rerouting" },
 ];
 
 // HeroUI drives ToggleButton colors through these variables; clear them so the sliding

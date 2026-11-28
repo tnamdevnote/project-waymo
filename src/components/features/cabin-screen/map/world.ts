@@ -596,32 +596,6 @@ export type World = {
   /** Street names for the reroute map, one per road in the grid. The 3D map has none. */
   nsNames: string[];
   ewNames: string[];
-  /** Minutes the trip starts with on top of the base arrival time (traffic already counted). */
-  startDelay: number;
-  /** Heavy traffic on the route ahead that the car reroutes round on its own; null for none. */
-  heavyTraffic: TrafficSetup | null;
-};
-
-/**
- * Heavy traffic ahead on `World.loop`. The car notices it at `detectAt`, finds a faster way
- * (`World.reroutes[0]`) and takes it without the rider doing anything.
- */
-export type TrafficSetup = {
-  /** Route distance on `loop` where the car notices the traffic. Before the way out diverges. */
-  detectAt: number;
-  /** The slow stretch on `loop`, as route distances [from, to]. */
-  jam: [number, number];
-  /** What the jam would add, and what the new route saves against it, in minutes. */
-  jamMinutes: number;
-  savedMinutes: number;
-  /** The street the jam is on, and the one the new route takes instead, for the copy. */
-  jamStreet: string;
-  viaStreet: string;
-  /** The part of the world the full-screen traffic map frames. */
-  region: { x0: number; x1: number; z0: number; z1: number };
-  /** Where the street names sit, as for `RerouteMapSetup`. */
-  nsLabelZ: number;
-  ewLabelX: number;
 };
 
 /** Stalled: stuck behind a parked fire truck on Comal St. */
@@ -644,31 +618,6 @@ export const STALL_WORLD: World = {
   reroutingMs: 3000,
   nsNames: ["Lamar Blvd", "Comal St", "Elm St"],
   ewNames: ["Oak St", "Pine St", "Cedar St", "Lake St"],
-  startDelay: 0,
-  heavyTraffic: null,
-};
-
-/**
- * Rerouting: the Stalled city with no fire truck. Heavy traffic on Pine St, the street the car
- * would turn onto; it notices on its way up Comal St and goes on to Oak St instead.
- */
-export const REROUTE_WORLD: World = {
-  ...STALL_WORLD,
-  uturn: null,
-  uturnEnd: 0,
-  blocked: false,
-  startDelay: 6,
-  heavyTraffic: {
-    detectAt: 15,
-    jam: [loop.corners[0][1] + 8, loop.corners[1][0] - 8],
-    jamMinutes: 6,
-    savedMinutes: 4,
-    jamStreet: "Pine St",
-    viaStreet: "Oak St",
-    region: { x0: -40, x1: 140, z0: -160, z1: 60 },
-    nsLabelZ: 10,
-    ewLabelX: 50,
-  },
 };
 
 /** Looping: circles one small block with nothing in the way, as if it can't find its way out. */
@@ -683,8 +632,6 @@ export const LOOP_WORLD: World = {
   uturnEnd: 0,
   blocked: false,
   reroutingMs: 5000,
-  startDelay: 0,
-  heavyTraffic: null,
   nsNames: [
     "Rio Grande St",
     "Nueces St",

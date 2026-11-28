@@ -16,7 +16,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { DETOUR_LENGTH, pathAt } from "./map/detour";
-import { LOOP_WORLD, type Loop, REROUTE_WORLD, STALL_WORLD, type World, wrap } from "./map/world";
+import { LOOP_WORLD, type Loop, STALL_WORLD, type World, wrap } from "./map/world";
 import { type Motion, motionOf, newSim, nextStop, stepSim } from "./sim";
 
 /** Live per-frame values. A new object each frame, so it works with useSyncExternalStore. */
@@ -39,16 +39,14 @@ export type CabinLive = {
 /**
  * Which demo story the ride plays, picked on the Start ride screen. "stalled": the car stops
  * behind a parked fire truck and the rider troubleshoots it. "looping": the car circles one small block with
- * nothing in the way, and the rider reports it lost. "rerouting": the car finds heavy traffic
- * ahead and takes a faster way on its own; the rider doesn't have to do anything.
+ * nothing in the way, and the rider reports it lost.
  */
-export type RideScenario = "stalled" | "looping" | "rerouting";
+export type RideScenario = "stalled" | "looping";
 
 /** The city and loops each scenario plays on. */
 const WORLD_BY_SCENARIO: Record<RideScenario, World> = {
   stalled: STALL_WORLD,
   looping: LOOP_WORLD,
-  rerouting: REROUTE_WORLD,
 };
 
 /** Where the ride is: waiting for the rider to press Start ride, or under way. */
@@ -71,7 +69,7 @@ export type PassWay = "bypass" | "detour";
 
 /**
  * Getting past the fire truck, after "Waymo is stuck" in the Stalled scenario (see
- * docs/decisions/firetruck-stuck.md). "scanning": the car checks the road ahead. "choosing": it
+ * docs/decisions/firetruck-stuck.md). Looping runs the same stages with no truck. "scanning": the car checks the road ahead. "choosing": it
  * proposes the bypass and counts down to taking it; the rider can go now or pick the detour.
  * `focus` is the way the rider is pointing at, so the map can light its arrow. "going": the car
  * is on its way, and a short note says which way.
@@ -104,21 +102,6 @@ export type RerouteStage = "rerouting" | "overview";
  * car. The call ends when the rider hangs up from the menu bar.
  */
 export type SupportStage = "connecting" | "connected";
-
-/**
- * The car reroutes round heavy traffic on its own (Rerouting scenario), with no rider input.
- * "rerouting": a flat map shows the jam and the way the car is considering. "found": it has
- * switched to the new route and the map shows it, with the time saved. "switched": back on the
- * 3D map, with a short note that it's on the faster route. "done": nothing left to show.
- */
-export type TrafficStage = "rerouting" | "found" | "switched" | "done";
-
-/** How long each traffic stage shows before the next. */
-const TRAFFIC_MS: Record<Exclude<TrafficStage, "done">, number> = {
-  rerouting: 3000,
-  found: 3000,
-  switched: 4000,
-};
 
 /** How long "connecting" shows before the agent picks up. */
 const CONNECTING_MS = 3000;
@@ -159,8 +142,6 @@ export type CabinScreenState = {
   reroute: RerouteStage | null;
   /** Set while the rider is on a call with Ride Support; null otherwise. */
   support: SupportStage | null;
-  /** Where the car's own reroute round traffic is; null until it notices the traffic. */
-  traffic: TrafficStage | null;
   /** The loop the car is driving: `world.loop`, or a reroute's `to` / `world.uturn` once it has
    *  rerouted. */
   course: Loop;
@@ -172,8 +153,7 @@ export type CabinScreenState = {
   motion: Motion;
   /** Cruise speed, m/s. */
   speed: number;
-  /** Minutes on top of the base arrival time: the world's `startDelay` plus what reroutes have
-   *  added (or, below it, saved). */
+  /** Minutes on top of the base arrival time: what reroutes and ways past have added. */
   delay: number;
   /** The rider confirmed a new route: the car drives to its end and stops there for good. */
   arriving: boolean;
@@ -355,7 +335,6 @@ function createEngine(
       onDetour(detour);
       snapshot = live();
     },
-    driveToEnd,
     /** Release the hold at the stop ahead and drive around what's blocking it (or, on the
      *  U-turn loop, turn round before it). */
     escape() {
@@ -499,7 +478,6 @@ function CabinScreenRun({
   const [course, setCourse] = useState<Loop>(world.loop);
   const [delay, setDelay] = useState(0);
   const [arriving, setArriving] = useState(false);
-  const [traffic, setTraffic] = useState<TrafficStage | null>(null);
   // When the rider asked for another route, so the new one shows `world.reroutingMs` after that.
   const reroutedAt = useRef(0);
   const [engine] = useState(() => createEngine(world, setMotion, setDetour, setCourse));
@@ -517,32 +495,6 @@ function CabinScreenRun({
     }, wait);
     return () => clearTimeout(t);
   }, [reroute, motion, engine, world]);
-
-  // Rerouting scenario: notice the traffic once the car passes `detectAt`, then run the stages.
-  useEffect(() => {
-    const setup = world.heavyTraffic;
-    if (!setup || phase !== "riding" || traffic !== null) return;
-    const unsubscribe = engine.meta.subscribe(() => {
-      if (engine.meta.getSnapshot().dist >= setup.detectAt) setTraffic("rerouting");
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [world, phase, traffic, engine]);
-  useEffect(() => {
-    const setup = world.heavyTraffic;
-    if (!setup || traffic === null || traffic === "done") return;
-    const t = setTimeout(() => {
-      if (traffic === "rerouting") {
-        // Still on the shared street, so it switches on the move and drives to the end.
-        engine.reroute();
-        engine.driveToEnd();
-        setDelay((d) => d - setup.savedMinutes);
-        setTraffic("found");
-      } else setTraffic(traffic === "found" ? "switched" : "done");
-    }, TRAFFIC_MS[traffic]);
-    return () => clearTimeout(t);
-  }, [world, traffic, engine]);
 
   // After "Safe path confirmed", the car drives around the obstruction and diagnosis ends.
   useEffect(() => {
@@ -598,17 +550,24 @@ function CabinScreenRun({
       setSpeed: (n) => setSpeedState(Math.max(0, n)),
       startDiagnosis: () => setDiagnosis("scanning"),
       endDiagnosis: () => setDiagnosis(null),
-      startPass: () => setPass({ stage: "scanning" }),
+      startPass: () => {
+        // Stalled is already stopped behind the truck. Looping pulls up just ahead, as it does
+        // for "Try another path", so the car stands still while the rider chooses.
+        engine.pullUp();
+        setPass({ stage: "scanning" });
+      },
       focusPassWay: (focus) =>
         setPass((p) => (p?.stage === "choosing" && p.focus !== focus ? { ...p, focus } : p)),
       choosePassWay: (way) => {
         if (pass?.stage !== "choosing") return;
         // The engine's own paths: the bypass is the way out past the truck (one lane left, then
         // straight on); the detour is its U-turn, a new route the car drives to the end of.
-        engine.reroute(way === "detour");
+        // Looping has no truck and no U-turn: either way leaves the block by the way out from the
+        // street the car pulled up on, and drives to the end of that route.
+        engine.reroute(way === "detour" && world.uturn !== null);
         engine.escape();
         setDelay((d) => d + PASS_MINUTES[way]);
-        if (way === "detour") setArriving(true);
+        if (way === "detour" || !world.blocked) setArriving(true);
         // Choosing is the go-ahead, even if the rider had pulled over.
         setDriving(true);
         setPass({ stage: "going", way });
@@ -655,13 +614,12 @@ function CabinScreenRun({
         pass,
         reroute,
         support,
-        traffic,
         course,
         detour,
         driving,
         motion,
         speed,
-        delay: world.startDelay + delay,
+        delay,
         arriving,
       },
       actions,
@@ -676,7 +634,6 @@ function CabinScreenRun({
       pass,
       reroute,
       support,
-      traffic,
       course,
       detour,
       driving,

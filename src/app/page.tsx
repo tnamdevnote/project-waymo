@@ -18,7 +18,6 @@ export default function Home() {
         <CabinScreen.Support />
         <CabinScreen.VehicleThought />
         <CabinScreen.Pass />
-        <CabinScreen.TrafficReroute destination="Union Station" />
         <CabinScreen.Arrival minutes={10} at="3:30" />
         <CabinScreen.RideMenu />
         <CabinScreen.Reset />

@@ -2,7 +2,7 @@
 
 // The flat street map shown while the rider looks over a new route (reroute "overview"): a plain
 // top-down map like a phone's maps app, on the right half beside the reroute panel, instead of
-// the 3D chase view. Shares its drawing with the traffic map (flatMap.tsx). The new
+// the 3D chase view. Its drawing parts are in flatMap.tsx. The new
 // route is solid green; the old one is dashed beside it, up to where the two meet again. After a
 // Ride Support call the new route is a U-turn instead: back south, with the blocked way ahead
 // dashed. Each time the map opens the new route draws itself out from the car and a red pin drops

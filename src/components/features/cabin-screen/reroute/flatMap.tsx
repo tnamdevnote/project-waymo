@@ -1,7 +1,6 @@
 "use client";
 
-// Shared parts of the flat, top-down street maps (the reroute overview and the traffic reroute):
-// fitting a part of the world to the screen, the city's blocks and buildings, the street names,
+// Parts of the flat, top-down street map (the reroute overview, RerouteMap.tsx): fitting a part of the world to the screen, the city's blocks and buildings, the street names,
 // route lines and the car's arrow. Drawn from the same city as the 3D map (world.ts), so streets
 // and routes line up with it. North up.
 import {

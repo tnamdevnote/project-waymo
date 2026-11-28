@@ -2,8 +2,8 @@
 
 // CabinScreen.Arrival: a read-only pill at the top center that tells the rider when they'll get
 // there. Fades in once the ride starts; hidden under the Start ride takeover. When the rider
-// confirms a new route, or the car takes a faster one round traffic, the time moves and the pill
-// shows the difference ("+2 min", "4 min sooner") for a few seconds.
+// confirms a new route or a way past, the time moves and the pill shows the difference ("+2 min")
+// for a few seconds.
 import { Chip } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { useCabinScreen } from "../CabinScreenRoot";

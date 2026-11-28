@@ -12,14 +12,12 @@ import { PullOverSheet } from "../pull-over/PullOverSheet";
 import { type RideIssue, rideIssues, TroubleshootSheet } from "../troubleshoot/TroubleshootSheet";
 
 /**
- * What Troubleshoot offers in each demo scenario. Stalled and Looping offer the full set
- * so the rider picks what fits. Rerouting: it finds its own way round traffic.
+ * What Troubleshoot offers in each demo scenario. Both offer the full set so the rider picks
+ * what fits.
  */
 const ISSUES_BY_SCENARIO: Record<RideScenario, readonly RideIssue[]> = {
   stalled: rideIssues,
   looping: rideIssues,
-  // The car reroutes round traffic on its own; nothing in its way to report.
-  rerouting: ["Other issue"],
 };
 
 function MusicIcon() {
@@ -150,6 +148,10 @@ export function RideMenu({
   // Behind the fire truck, not yet round it: "Waymo is stuck" scans and offers the ways past.
   const canPickPath =
     state.world.blocked && state.course === state.world.loop && state.detour === null;
+  // Looping offers the same Pass panel while still circling its block, with nothing in the way:
+  // the car pulls up, then leaves the block (CabinScreenRoot's startPass and choosePassWay).
+  const canPass =
+    canPickPath || (state.scenario === "looping" && state.course === state.world.loop);
   // Stopped there on its own (not pulled over): once the car is fully at rest, ring Help once so
   // the rider finds it.
   const stoppingForTruck = useStoppingForTruck();
@@ -265,10 +267,10 @@ export function RideMenu({
           <TroubleshootSheet
             issues={ISSUES_BY_SCENARIO[state.scenario]}
             onCallSupport={callSupport}
-            skipStuckReasons={canPickPath}
+            skipStuckReasons={canPass}
             onReportIssue={(issue) => {
               if (issue === "Other issue") callSupport();
-              if (issue === "Waymo is stuck" && canPickPath) {
+              if (issue === "Waymo is stuck" && canPass) {
                 setSheetOpen(false);
                 actions.startPass();
               }
