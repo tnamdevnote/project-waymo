@@ -36,7 +36,8 @@ export type BottomSheetContentProps = Pick<
   "aria-label"?: string;
 };
 
-/** The sheet itself: backdrop, slide-up panel and drag handle. Tap outside, drag down or Esc closes it. */
+/** The sheet itself: backdrop, slide-up panel, drag handle and a close button in the top-right
+ * corner. The close button, tap outside, drag down or Esc closes it. */
 function BottomSheetContent({
   variant,
   isDismissable,
@@ -56,6 +57,8 @@ function BottomSheetContent({
           {/* HeroUI's bar is 4×36px, too faint to find from the back seat. The strip is a tall
               grab area; `*:` styles the bar HeroUI renders inside it. */}
           <Drawer.Handle className="h-16 pb-0 *:h-2 *:w-24 *:rounded-full *:bg-border" />
+          {/* A small, explicit way out next to drag-down, tap-outside and Esc. */}
+          <Drawer.CloseTrigger aria-label="Close" className="end-8 top-8" />
           {children}
         </Drawer.Dialog>
       </Drawer.Content>
