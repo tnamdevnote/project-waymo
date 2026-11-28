@@ -105,6 +105,22 @@ export type TroubleshootSheetProps = Omit<BottomSheetContentProps, "children"> &
   onCallEmergency?: () => void;
 };
 
+/** Heading and line under it for each step but "stuck", which has its own header. */
+const HEADER = {
+  actions: {
+    heading: "Tell us what’s wrong",
+    description: "Choose an option below to resolve the issue",
+  },
+  report: {
+    heading: "Tell us what’s happening",
+    description: "Share what you’re experiencing so we can assist.",
+  },
+  lost: {
+    heading: "Finding a new route",
+    description: "Waymo can try a different route to get you back on track.",
+  },
+} as const;
+
 type TroubleshootBodyProps = Omit<TroubleshootSheetProps, keyof BottomSheetContentProps>;
 
 // Lives inside the dialog, which unmounts on close, so the sheet always reopens on the first step.
@@ -130,14 +146,8 @@ function TroubleshootBody({
         </BottomSheet.Header>
       ) : (
         <BottomSheet.Header>
-          <BottomSheet.Heading>
-            {step === "actions" ? "Tell us what’s wrong" : "Finding a new route"}
-          </BottomSheet.Heading>
-          <BottomSheet.Description>
-            {step === "actions"
-              ? "Choose an option below to resolve the issue"
-              : "Waymo can try a different route to get you back on track."}
-          </BottomSheet.Description>
+          <BottomSheet.Heading>{HEADER[step].heading}</BottomSheet.Heading>
+          <BottomSheet.Description>{HEADER[step].description}</BottomSheet.Description>
         </BottomSheet.Header>
       )}
       <BottomSheet.Body>
