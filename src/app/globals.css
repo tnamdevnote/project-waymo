@@ -63,9 +63,58 @@
   }
 }
 
-/* Troubleshoot while the car is stuck: a 4px brand gradient ring just inside the pill (Figma
-   node 780:389). A user-approved exception to DESIGN.md: it uses the brand swatches directly,
-   green included. A mask cuts the middle out, so the button's own fill and focus ring show. */
+/* Help while the car is stuck: a border micro-interaction draws the rider's eye to it. A hairline
+   fades in, thickens to 4px while a green-to-blue gradient (twice round) spins round
+   the pill, then thins out again. It plays once, when the car comes to a full stop. A user-approved
+   exception to DESIGN.md: it uses the brand swatches directly, green included. A mask cuts the
+   middle out, so the button's own fill and focus ring show. Reduced motion gets a still 4px ring that fades in and out. */
+@property --stuck-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --stuck-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 4px;
+}
+
+@keyframes stuck-sweep {
+  0% {
+    --stuck-angle: 0deg;
+    --stuck-width: 0.5px;
+    opacity: 0;
+  }
+  15% {
+    --stuck-width: 1px;
+    opacity: 1;
+  }
+  35%,
+  80% {
+    --stuck-width: 4px;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    --stuck-angle: 300deg;
+    --stuck-width: 0.5px;
+    opacity: 0;
+  }
+}
+
+@keyframes stuck-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+}
+
 .stuck-ring {
   position: relative;
 
@@ -73,14 +122,28 @@
     content: "";
     position: absolute;
     inset: 0;
-    padding: 4px;
+    padding: var(--stuck-width);
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--waymo-green), var(--waymo-blue));
+    background: conic-gradient(
+      from var(--stuck-angle),
+      var(--waymo-green),
+      var(--waymo-blue) 25%,
+      var(--waymo-green) 50%,
+      var(--waymo-blue) 75%,
+      var(--waymo-green)
+    );
     mask:
       linear-gradient(black 0 0) content-box,
       linear-gradient(black 0 0);
     mask-composite: exclude;
     pointer-events: none;
+    animation: stuck-sweep 2200ms ease-in-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation-name: stuck-fade;
+    }
   }
 }
 

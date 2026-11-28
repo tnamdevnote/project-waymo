@@ -150,10 +150,10 @@ export function RideMenu({
   // Behind the fire truck, not yet round it: "Waymo is stuck" scans and offers the ways past.
   const canPickPath =
     state.world.blocked && state.course === state.world.loop && state.detour === null;
-  // Stopping there on its own (not pulled over): ring Troubleshoot so the rider finds it, at the
-  // same moment as the car's question mark.
+  // Stopped there on its own (not pulled over): once the car is fully at rest, ring Help once so
+  // the rider finds it.
   const stoppingForTruck = useStoppingForTruck();
-  const stuck = canPickPath && stoppingForTruck && state.driving;
+  const stuck = canPickPath && stoppingForTruck && state.driving && state.motion === "stopped";
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pullOverOpen, setPullOverOpen] = useState(false);
   // "Call support" and "Other issue" in the sheet, and the bar's own Support item during
