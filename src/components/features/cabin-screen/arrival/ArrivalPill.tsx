@@ -48,13 +48,20 @@ export function Arrival({ minutes, at, className }: ArrivalPillProps) {
     return () => clearTimeout(t);
   }, [change]);
 
+  // While CabinScreen.Pass covers the left of the screen, its heading reaches past the middle:
+  // move the pill right, beside the Reset button, over the map.
+  const aside = state.pass !== null && state.pass.stage !== "going";
+
   // Spans the width to center the pill; top-14 centers it on the 80px Reset button at top-12.
+  // Aside, pr-36 keeps it clear of that button (48px inset + 80px + 16px gap).
   return (
     <div
       aria-hidden={hidden || undefined}
       data-hidden={hidden || undefined}
+      data-aside={aside || undefined}
       className={[
         "pointer-events-none absolute inset-x-0 top-14 flex justify-center px-12",
+        "data-[aside]:justify-end data-[aside]:pr-36",
         "transition-opacity duration-300 ease-out motion-reduce:transition-none",
         "data-[hidden]:opacity-0",
       ].join(" ")}

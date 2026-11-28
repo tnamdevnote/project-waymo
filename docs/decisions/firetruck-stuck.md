@@ -10,19 +10,20 @@ Variant 2's split view with Variant 3's content. The car proposes, and the rider
 
 - Layout: a solid `bg-surface` column on the left holds all the content, with a separate 96px fade strip (`w-24 bg-linear-to-r from-surface to-transparent`) beside it. Content never sits on the gradient. The map stays visible on the right with the truck and both ways drawn on the road.
 - Responsive:
-  - Column width: 28rem, then 32rem from `xl`, then 36rem from `2xl`.
+  - Column width: 32rem, then 36rem from `xl`. "Obstruction detected" never wraps.
   - Padding and gaps: `p-8 pr-4 pb-12`, gap 8 below `xl`; `p-12 pr-6`, gap 12 from `xl`.
   - Buttons: pinned to the bottom of the column (`mt-auto`), 48px up, level with the ride controls. Below `2xl`, each button's seconds or cost sits under its label, so the label stays on one line. From `2xl` they sit side by side. Buttons are at least 96px tall and grow if a label wraps; the value never wraps or clips.
 - Scanning (3.5s): heading "Scanning the road ahead…", "Your Waymo stopped for something ahead.", and a large square `ScanIndicator` (max-w-80, rounded-3xl).
-- Then: the warning icon (yellow `fill-warning` triangle, `stroke-warning-foreground` mark, size-12) with "Obstruction detected", and "There's room to pass on the left. Your Waymo will go on its own."
+- Then: "Obstruction detected" and "There's room to pass on the left. Your Waymo will go on its own." No icon in the heading: the warning sign is the car's thought bubble (the yellow 3D `warning` glyph), over the car on the map. While the car scans, the bubble keeps the grey question mark it showed when it stopped; once the car sets off, it turns to the navigation arrow.
 - Primary button, "Pass on the left", `shadow-hero`, with a 10s countdown shown as "{n} s" and a fill bar sweeping left to right behind the label (`bg-accent-foreground`, opacity 20%). When it reaches zero, the car takes the bypass. The countdown holds while the rider has pulled over or the tab is hidden, and picks up where it left off. Under reduced motion the fill steps once a second.
 - Choosing either way is the go-ahead: the car drives off even if the rider had pulled over. The bypass adds 1 minute to the arrival time; the detour adds 4 and ends the trip at the U-turn route's end, like a confirmed reroute.
 - Secondary button, "Detour instead", showing "+4 min".
 - On the road: both ways are drawn as arrows painted flat on the road in `--foreground` at 85% opacity (not accent, since the route already uses blue for the part driven). The proposed bypass is bright and the detour faint (30%). Hovering or focusing Detour swaps them. They fade with a ~250ms damp.
 - Panel enter: 220ms `cubic-bezier(0.32, 0.72, 0, 1)`, rising 8px. Exit: 160ms ease-in. Buttons stagger in 60ms apart.
 - Camera: while the panel shows (scanning and choosing), `CabinMap.Camera` treats it as a split view and moves sideways by `splitOffset` (0.4), so the car sits about 70% across the screen. It also pulls up to 46m, aimed 6m ahead of the car (`PASS_VIEW`), so the truck clears the top edge, the U-turn arrowhead stays on screen, and the car clears the menu bar. It eases back to the ride view once the car moves.
-- The green route ahead stays drawn under the arrows. The car's thinking bubble hides while the panel shows and turns to the green arrow when the car sets off.
+- The green route ahead stays drawn under the arrows.
 - While the panel shows, the menu bar keeps only Pull over and Call support, as in the other split views.
+- While the panel shows, the arrival pill moves from the top center to the right, beside the Reset button, so it never sits on the heading.
 - No eyebrow above the heading: "Obstruction detected" leads.
 - Both buttons share shape and alignment: icon on the left, then the label with its seconds or cost.
 - Focus moves to "Pass on the left" when the buttons appear. Screen readers hear one announcement per stage, not every second of the countdown.

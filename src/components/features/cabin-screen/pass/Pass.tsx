@@ -53,27 +53,6 @@ function WayIcon({ way, className }: { way: PassWay; className?: string }) {
   );
 }
 
-/** Warning: a yellow-filled triangle with the mark in its foreground pair. */
-function WarningIcon({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden viewBox="0 0 24 24" className={className}>
-      <path
-        d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
-        strokeWidth={2}
-        strokeLinejoin="round"
-        className="fill-warning stroke-warning"
-      />
-      <path
-        d="M12 9v4M12 17h.01"
-        fill="none"
-        strokeWidth={2}
-        strokeLinecap="round"
-        className="stroke-warning-foreground"
-      />
-    </svg>
-  );
-}
-
 /**
  * Counts down from COUNTDOWN_S and calls `onDone` at zero. Holds while `paused` (the rider pulled
  * over) or the tab is hidden, and picks up where it left off. Drives `--p` (0–1) on `fill`.
@@ -211,17 +190,17 @@ export function Pass({ className }: PassProps) {
           .join(" ")}
       >
         {/* A solid column holds everything; the fade is a separate strip beside it, so no content
-            can sit on the gradient at any width. 28rem, 32rem from xl, 36rem from 2xl. */}
-        <div className="flex w-md flex-col gap-8 bg-surface p-8 pr-4 pb-12 xl:w-lg xl:gap-12 xl:p-12 xl:pr-6 2xl:w-xl">
+            can sit on the gradient at any width. 32rem, 36rem from xl: "Obstruction detected" fits
+            on one line. */}
+        <div className="flex w-lg flex-col gap-8 bg-surface p-8 pr-4 pb-12 xl:w-xl xl:gap-12 xl:p-12 xl:pr-6">
           <header className="flex flex-col gap-2 xl:gap-3">
-            <h2
-              id={headingId}
-              className="flex items-center gap-3 text-heading text-balance xl:gap-4"
-            >
-              {shown === "choosing" && (
-                <WarningIcon className="pass-enter size-10 shrink-0 xl:size-12" />
+            {/* The warning sign is in the car's thought bubble (CabinScreen.VehicleThought). */}
+            <h2 id={headingId} className="text-heading text-balance">
+              {shown === "choosing" ? (
+                <span className="whitespace-nowrap">Obstruction detected</span>
+              ) : (
+                "Scanning the road ahead…"
               )}
-              {shown === "choosing" ? "Obstruction detected" : "Scanning the road ahead…"}
             </h2>
             <p className="text-caption text-pretty text-muted">
               {shown === "choosing"

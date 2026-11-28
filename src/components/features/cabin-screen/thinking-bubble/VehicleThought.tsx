@@ -4,8 +4,8 @@
 // stops on its own (behind the parked fire truck): a muted question mark while it brakes and
 // waits, unsure how to get past, then a navigation arrow as it pulls away.
 // Not shown when the rider pulled over: they asked for that stop, so there's nothing to explain.
-// Hidden while the rider picks a path, so it doesn't cover the choices; the navigation arrow
-// shows as the car drives off.
+// After the rider reports the fire truck, it keeps the question mark while the car scans, shows a
+// warning sign while the car offers the ways past, then the navigation arrow as it sets off.
 // While the car diagnoses a stall the rider reported, it shows a question mark while scanning,
 // an exclamation mark once it has found the obstruction, a VR headset while a remote agent
 // reviews it, a magnifier while it looks for an alternate path, a tick once it has one, then the
@@ -44,7 +44,9 @@ export function VehicleThought(props: VehicleThoughtProps) {
   const { state, meta, anchors } = useCabinScreen();
   const { motion, driving, phase, diagnosis, pass, reroute, support, arriving } = state;
   // Diagnosing, rerouting or on a Support call: the bubble says that, not the red light.
-  const busy = diagnosis !== null || reroute !== null || support !== null;
+  // Scanning for, or offering, a way past the fire truck.
+  const passing = pass !== null && pass.stage !== "going";
+  const busy = diagnosis !== null || reroute !== null || support !== null || passing;
   const auto = phase === "riding" && driving;
 
   const [light, setLight] = useState<Light | null>(null);
@@ -82,7 +84,6 @@ export function VehicleThought(props: VehicleThoughtProps) {
     }
   }
   // And when the car sets off past the fire truck.
-  const passing = pass !== null && pass.stage !== "going";
   const [prevPassing, setPrevPassing] = useState(passing);
   if (passing !== prevPassing) {
     setPrevPassing(passing);
@@ -102,7 +103,7 @@ export function VehicleThought(props: VehicleThoughtProps) {
   // React Aria places the bubble once, on open. The car keeps sliding a little on screen while it
   // brakes and the camera settles, so follow it by the drift since then.
   // Closed in the overhead view: the car is too small up there to point a bubble at.
-  const open = !passing && reroute !== "overview" && (light !== null || busy);
+  const open = reroute !== "overview" && (light !== null || busy);
   const bubble = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -133,6 +134,13 @@ export function VehicleThought(props: VehicleThoughtProps) {
           {/* Blue once the agent picks up, as in Figma (node 571:9805). */}
           <ThinkingBubble.Glyph shown={support === "connected"}>
             <ThoughtIcon name="support" />
+          </ThinkingBubble.Glyph>
+          {/* The Pass panel announces these. */}
+          <ThinkingBubble.Glyph shown={pass?.stage === "scanning"}>
+            <ThoughtIcon name="help" />
+          </ThinkingBubble.Glyph>
+          <ThinkingBubble.Glyph shown={pass?.stage === "choosing"}>
+            <ThoughtIcon name="warning" />
           </ThinkingBubble.Glyph>
           <ThinkingBubble.Glyph shown={reroute === "rerouting"}>
             <ThoughtIcon name="map" />
